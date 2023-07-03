@@ -1,0 +1,60 @@
+<html>
+
+<head>
+<title>Hello CG</title>
+</head>
+
+<script src="math.js"></script>
+<script src="webgl.js"></script>
+
+<script id="vertex-shader" type="notjs">
+attribute vec4 position;
+attribute vec2 texCoord;
+uniform mat4 transfproj;
+uniform mat4 transf;
+
+varying vec2 v_texCoord;
+
+attribute vec3 normal;
+varying vec3 v_normal;
+
+void main()
+{
+    v_normal = (transf*vec4(normal, 1.0)).xyz;
+    
+	v_texCoord = texCoord;
+	gl_Position = transfproj*position;
+}
+</script>
+
+<script id="frag-shader" type="notjs">
+precision mediump float;
+
+uniform sampler2D tex;
+
+varying vec2 v_texCoord;
+
+varying vec3 v_normal;
+uniform vec3 lightDirection;
+uniform vec3 lightColor;
+
+void main()
+{
+    vec3 v_normal_n = normalize(v_normal);
+    vec3 lightDirection_n = normalize(-lightDirection);
+    
+    float light = dot(lightDirection_n, v_normal_n);
+    
+    if(light < 0.0) light = 0.0;
+    
+    gl_FragColor = vec4(lightColor*light*texture2D(tex, v_texCoord).rgb, 1);
+}
+</script>
+
+<body onload="init()">
+
+<canvas id="glcanvas1" width="400" height="300"></canvas>
+
+</body>
+
+</html>
