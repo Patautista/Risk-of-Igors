@@ -5,6 +5,10 @@
 </head>
 
 <script src="math.js"></script>
+<script src="objParser.js"></script>
+<script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>
+<script src="https://webglfundamentals.org/webgl/resources/m4.js"></script>
+<script src="movement.js"></script>
 <script src="webgl.js"></script>
 
 <script id="vertex-shader" type="notjs">
@@ -51,9 +55,9 @@ void main()
 }
 </script>
 
-<body onload="init()">
+<body onload="loadNRun()">
 
-<canvas id="glcanvas1" width="400" height="300"></canvas>
+<canvas id="glcanvas1" width="800" height="800"></canvas>
 
 </body>
 

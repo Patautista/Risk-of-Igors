@@ -1,5 +1,5 @@
 var teximg = [];
-var texSrc = ["igor.png", "gato.jpg"];
+var texSrc = ["igor.png", "gato.jpg", "igor.png"];
 var loadTexs = 0;
 var gl;
 var prog;
@@ -156,6 +156,8 @@ async function configScene() {
 
     //Quad 3
     0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0,
+
+    0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1,
   ]);
 
   //Cria buffer na GPU e copia coordenadas para ele
@@ -217,62 +219,24 @@ async function configScene() {
     gl.UNSIGNED_BYTE,
     teximg[1]
   );
+
+  var tex2 = gl.createTexture();
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, tex2);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texImage2D(
+    gl.TEXTURE_2D,
+    0,
+    gl.RGBA,
+    gl.RGBA,
+    gl.UNSIGNED_BYTE,
+    teximg[0]
+  );
+  
 }
-
-function parseOBJ(objString) {
-    var lines = objString.split("\n");
-    var vertices = [];
-    var faces = [];
-  
-    for (var i = 0; i < lines.length; i++) {
-      var line = lines[i].trim();
-  
-      // Skip comments and empty lines
-      if (line.startsWith("#") || line === "") {
-        continue;
-      }
-  
-      var parts = line.split(" ");
-      var type = parts[0];
-  
-      console.log("parts[1]: ", parts)
-      if (type === "v") {
-        // Vertex coordinates
-        var x = parseFloat(parts[1]);
-        var y = parseFloat(parts[2]);
-        var z = parseFloat(parts[3]);
-        vertices.push(x, y, z, 0.0, 0.0);
-      } else if (type === "f") {
-        // Face indices
-        var faceIndices = [];
-        for (var j = 1; j < parts.length; j++) {
-          var indices = parts[j].split("/");
-          var vertexIndex = parseInt(indices[0]) - 1; // OBJ format uses 1-based indices
-          faceIndices.push(vertexIndex);
-        }
-        faces.push(faceIndices);
-      }
-      // ... handle other OBJ data types like normals and texture coordinates if needed
-    }
-
-    var sortedVertices = []
-    for (var j = 0; j < faces.length; j++){
-        for (var i = 0;  i < faces[j].length; i++){
-            sortedVertices.push(
-                vertices[faces[j][i]*5], vertices[faces[j][i]*5+1], vertices[faces[j][i]*5+2],
-                vertices[faces[j][i]*5+3], vertices[faces[j][i]*5+4])
-        }
-        sortedVertices.push(
-            vertices[faces[j][0]*5], vertices[faces[j][0]*5+1], vertices[faces[j][0]*5+2],
-            vertices[faces[j][0]*5+3], vertices[faces[j][0]*5+4])
-    }
-  
-    return {
-        original: vertices,
-        vertices: sortedVertices,
-        faces: faces,
-    };
-  }
 
 function createPerspective(fovy, aspect, near, far) {
   fovy = (fovy * Math.PI) / 180.0;
@@ -386,7 +350,7 @@ function draw() {
   ]);
 
   var transforma = math.multiply(matrotY, matrotX);
-  transforma = math.multiply(matrotZ, transforma);
+  //transforma = math.multiply(matrotZ, transforma);
 
   var transformaproj = math.multiply(cam, transforma);
   transformaproj = math.multiply(mproj, transformaproj);
@@ -406,7 +370,7 @@ function draw() {
   gl.uniform1i(texPtr, 0);
   gl.drawArrays(gl.TRIANGLES, 0, 3);
   gl.drawArrays(gl.TRIANGLES, 2, 3);
-
+  
   gl.uniform1i(texPtr, 1);
   gl.drawArrays(gl.TRIANGLES, 5, 3);
   gl.drawArrays(gl.TRIANGLES, 7, 3);
@@ -416,6 +380,27 @@ function draw() {
   gl.uniform1i(texPtr, 1);
   gl.drawArrays(gl.TRIANGLES, 12, 3);
 
+  gl.uniform1i(texPtr, 0);
+  gl.drawArrays(gl.TRIANGLES, 15, 3);
+  gl.drawArrays(gl.TRIANGLES, 17, 3);
+
+  gl.uniform1i(texPtr, 0);
+  gl.drawArrays(gl.TRIANGLES, 20, 3);
+  gl.drawArrays(gl.TRIANGLES, 22, 3);
+
+  gl.uniform1i(texPtr, 0);
+  gl.drawArrays(gl.TRIANGLES, 25, 3);
+  gl.drawArrays(gl.TRIANGLES, 27, 3);
+
+  gl.uniform1i(texPtr, 0);
+  gl.drawArrays(gl.TRIANGLES, 30, 3);
+  gl.drawArrays(gl.TRIANGLES, 32, 3);
+
+  gl.drawArrays(gl.TRIANGLES, 35, 3);
+  gl.drawArrays(gl.TRIANGLES, 37, 3);
+
+  gl.drawArrays(gl.TRIANGLES, 40, 3);
+  gl.drawArrays(gl.TRIANGLES, 42, 3);
 
   angle++;
 
