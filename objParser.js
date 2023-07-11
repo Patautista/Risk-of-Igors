@@ -1,14 +1,7 @@
-// WebGL - load obj - w/mtl, no textures
-// from https://webglfundamentals.org/webgl/webgl-load-obj-w-mtl-no-textures.html
 
-
-"use strict";
-
-// This is not a full .obj parser.
-// see http://paulbourke.net/dataformats/obj/
+// GEOMETRY
 
 function parseOBJ(text) {
-  // because indices are base 1 let's just fill in the 0th data
   const objPositions = [[0, 0, 0]];
   const objTexcoords = [[0, 0]];
   const objNormals = [[0, 0, 0]];
@@ -175,6 +168,8 @@ function parseMapArgs(unparsedArgs) {
   return unparsedArgs;
 }
 
+// MATERIAL
+
 function parseMTL(text) {
   const materials = {};
   let material;
@@ -304,14 +299,6 @@ async function loadNRun() {
   }));
   const materials = parseMTL(matTexts.join('\n'));
 
-  const defaultMaterial = {
-    diffuse: [1, 1, 1],
-    ambient: [0, 0, 0],
-    specular: [1, 1, 1],
-    shininess: 400,
-    opacity: 1,
-  };
-
   const parts = obj.geometries.map(({material, data}) => {
     // Because data is just named arrays like this
     //
@@ -419,17 +406,26 @@ async function loadNRun() {
   function render(time) {
     time *= 0.001;  // convert to seconds
 
-    cameraPosition = m4.addVectors(cameraPosition, 
-      [
-      0,
-      0,
-      movement.z,
-    ]);
+    //D = A + (B - A) * (moving * step_amount)
+    cameraPosition = m4.addVectors(cameraPosition, m4.scaleVector(m4.subtractVectors(cameraTarget, cameraPosition), moving_back_forth * STEP_AMOUNT));
 
+    // move camera target on the same direction
+    //D = A + (B - A) * (moving * step_amount)
+    cameraTarget = m4.addVectors(cameraTarget, m4.scaleVector(m4.subtractVectors(cameraTarget, cameraPosition), moving_back_forth * STEP_AMOUNT));
     
-    cameraTarget = transformPoint(m4.yRotation(degToRad(movement.y)), cameraTarget, cameraPosition)
+    if (moving_sideways == 1){
+      console.log(90)
+    }
+    if (moving_sideways == -1){
+      console.log(270)
+    }
+    // sideways movement
+    var sideTarget = transformPoint(m4.yRotation(degToRad(90 + moving_sideways * -180)), cameraTarget, cameraPosition)
+    cameraPosition = m4.addVectors(cameraPosition, m4.scaleVector(m4.subtractVectors(sideTarget, cameraPosition), -1 * moving_sideways * STEP_AMOUNT));
+    cameraTarget = m4.addVectors(cameraTarget, m4.scaleVector(m4.subtractVectors(sideTarget, cameraPosition), -1 * moving_sideways * STEP_AMOUNT));
 
-    //position.z = 0;
+
+    cameraTarget = transformPoint(m4.yRotation(degToRad(angle)), cameraTarget, cameraPosition)
 
     webglUtils.resizeCanvasToDisplaySize(gl.canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -440,7 +436,7 @@ async function loadNRun() {
     const projection = m4.perspective(fieldOfViewRadians, aspect, zNear, zFar);
 
     const up = [0, 1, 0];
-    // Compute the camera's matrix using look at.
+    // Compute the camera's matrix
     const camera = m4.lookAt(cameraPosition, cameraTarget, up);
 
     // Make a view matrix from the camera matrix.
@@ -460,7 +456,7 @@ async function loadNRun() {
 
     // compute the world matrix once since all parts
     // are at the same space.
-    let u_world = m4.yRotation(time);
+    let u_world = m4.yRotation(0);
     u_world = m4.translate(u_world, ...objOffset);
 
     for (const {bufferInfo, material} of parts) {

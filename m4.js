@@ -1,38 +1,6 @@
-/*
- * Copyright 2021 GFXFundamentals.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- *
- *     * Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above
- * copyright notice, this list of conditions and the following disclaimer
- * in the documentation and/or other materials provided with the
- * distribution.
- *     * Neither the name of GFXFundamentals. nor the names of his
- * contributors may be used to endorse or promote products derived from
- * this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 /**
- * Various 3d math functions.
+ * 3d math functions.
  *
- * @module webgl-3d-math
  */
 (function(root, factory) {  // eslint-disable-line
     if (typeof define === 'function' && define.amd) {
@@ -255,18 +223,6 @@
       return (a[0] * b[0]) + (a[1] * b[1]) + (a[2] * b[2]);
     }
   
-    /**
-     * Computes the distance squared between 2 points
-     * @param {Vector3} a
-     * @param {Vector3} b
-     * @return {number} distance squared between a and b
-     */
-    function distanceSq(a, b) {
-      const dx = a[0] - b[0];
-      const dy = a[1] - b[1];
-      const dz = a[2] - b[2];
-      return dx * dx + dy * dy + dz * dz;
-    }
   
     /**
      * Computes the distance between 2 points
@@ -832,125 +788,6 @@
     }
   
     /**
-     * Makes an rotation matrix around an arbitrary axis
-     * @param {Vector3} axis axis to rotate around
-     * @param {number} angleInRadians amount to rotate
-     * @param {Matrix4} [dst] optional matrix to store result
-     * @return {Matrix4} dst or a new matrix if none provided
-     * @memberOf module:webgl-3d-math
-     */
-    function axisRotation(axis, angleInRadians, dst) {
-      dst = dst || new MatType(16);
-  
-      var x = axis[0];
-      var y = axis[1];
-      var z = axis[2];
-      var n = Math.sqrt(x * x + y * y + z * z);
-      x /= n;
-      y /= n;
-      z /= n;
-      var xx = x * x;
-      var yy = y * y;
-      var zz = z * z;
-      var c = Math.cos(angleInRadians);
-      var s = Math.sin(angleInRadians);
-      var oneMinusCosine = 1 - c;
-  
-      dst[ 0] = xx + (1 - xx) * c;
-      dst[ 1] = x * y * oneMinusCosine + z * s;
-      dst[ 2] = x * z * oneMinusCosine - y * s;
-      dst[ 3] = 0;
-      dst[ 4] = x * y * oneMinusCosine - z * s;
-      dst[ 5] = yy + (1 - yy) * c;
-      dst[ 6] = y * z * oneMinusCosine + x * s;
-      dst[ 7] = 0;
-      dst[ 8] = x * z * oneMinusCosine + y * s;
-      dst[ 9] = y * z * oneMinusCosine - x * s;
-      dst[10] = zz + (1 - zz) * c;
-      dst[11] = 0;
-      dst[12] = 0;
-      dst[13] = 0;
-      dst[14] = 0;
-      dst[15] = 1;
-  
-      return dst;
-    }
-  
-    /**
-     * Multiply by an axis rotation matrix
-     * @param {Matrix4} m matrix to multiply
-     * @param {Vector3} axis axis to rotate around
-     * @param {number} angleInRadians amount to rotate
-     * @param {Matrix4} [dst] optional matrix to store result
-     * @return {Matrix4} dst or a new matrix if none provided
-     * @memberOf module:webgl-3d-math
-     */
-    function axisRotate(m, axis, angleInRadians, dst) {
-      // This is the optimized version of
-      // return multiply(m, axisRotation(axis, angleInRadians), dst);
-      dst = dst || new MatType(16);
-  
-      var x = axis[0];
-      var y = axis[1];
-      var z = axis[2];
-      var n = Math.sqrt(x * x + y * y + z * z);
-      x /= n;
-      y /= n;
-      z /= n;
-      var xx = x * x;
-      var yy = y * y;
-      var zz = z * z;
-      var c = Math.cos(angleInRadians);
-      var s = Math.sin(angleInRadians);
-      var oneMinusCosine = 1 - c;
-  
-      var r00 = xx + (1 - xx) * c;
-      var r01 = x * y * oneMinusCosine + z * s;
-      var r02 = x * z * oneMinusCosine - y * s;
-      var r10 = x * y * oneMinusCosine - z * s;
-      var r11 = yy + (1 - yy) * c;
-      var r12 = y * z * oneMinusCosine + x * s;
-      var r20 = x * z * oneMinusCosine + y * s;
-      var r21 = y * z * oneMinusCosine - x * s;
-      var r22 = zz + (1 - zz) * c;
-  
-      var m00 = m[0];
-      var m01 = m[1];
-      var m02 = m[2];
-      var m03 = m[3];
-      var m10 = m[4];
-      var m11 = m[5];
-      var m12 = m[6];
-      var m13 = m[7];
-      var m20 = m[8];
-      var m21 = m[9];
-      var m22 = m[10];
-      var m23 = m[11];
-  
-      dst[ 0] = r00 * m00 + r01 * m10 + r02 * m20;
-      dst[ 1] = r00 * m01 + r01 * m11 + r02 * m21;
-      dst[ 2] = r00 * m02 + r01 * m12 + r02 * m22;
-      dst[ 3] = r00 * m03 + r01 * m13 + r02 * m23;
-      dst[ 4] = r10 * m00 + r11 * m10 + r12 * m20;
-      dst[ 5] = r10 * m01 + r11 * m11 + r12 * m21;
-      dst[ 6] = r10 * m02 + r11 * m12 + r12 * m22;
-      dst[ 7] = r10 * m03 + r11 * m13 + r12 * m23;
-      dst[ 8] = r20 * m00 + r21 * m10 + r22 * m20;
-      dst[ 9] = r20 * m01 + r21 * m11 + r22 * m21;
-      dst[10] = r20 * m02 + r21 * m12 + r22 * m22;
-      dst[11] = r20 * m03 + r21 * m13 + r22 * m23;
-  
-      if (m !== dst) {
-        dst[12] = m[12];
-        dst[13] = m[13];
-        dst[14] = m[14];
-        dst[15] = m[15];
-      }
-  
-      return dst;
-    }
-  
-    /**
      * Makes a scale matrix
      * @param {number} sx x scale.
      * @param {number} sy y scale.
@@ -1079,48 +916,6 @@
       return dst;
     }
   
-    function quatFromRotationMatrix(m, dst) {
-      // http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
-  
-      // assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)
-      const m11 = m[0];
-      const m12 = m[4];
-      const m13 = m[8];
-      const m21 = m[1];
-      const m22 = m[5];
-      const m23 = m[9];
-      const m31 = m[2];
-      const m32 = m[6];
-      const m33 = m[10];
-  
-      const trace = m11 + m22 + m33;
-  
-      if (trace > 0) {
-        const s = 0.5 / Math.sqrt(trace + 1);
-        dst[3] = 0.25 / s;
-        dst[0] = (m32 - m23) * s;
-        dst[1] = (m13 - m31) * s;
-        dst[2] = (m21 - m12) * s;
-      } else if (m11 > m22 && m11 > m33) {
-        const s = 2 * Math.sqrt(1 + m11 - m22 - m33);
-        dst[3] = (m32 - m23) / s;
-        dst[0] = 0.25 * s;
-        dst[1] = (m12 + m21) / s;
-        dst[2] = (m13 + m31) / s;
-      } else if (m22 > m33) {
-        const s = 2 * Math.sqrt(1 + m22 - m11 - m33);
-        dst[3] = (m13 - m31) / s;
-        dst[0] = (m12 + m21) / s;
-        dst[1] = 0.25 * s;
-        dst[2] = (m23 + m32) / s;
-      } else {
-        const s = 2 * Math.sqrt(1 + m33 - m11 - m22);
-        dst[3] = (m21 - m12) / s;
-        dst[0] = (m13 + m31) / s;
-        dst[1] = (m23 + m32) / s;
-        dst[2] = 0.25 * s;
-      }
-    }
   
     function decompose(mat, translation, quaternion, scale) {
       let sx = m4.length(mat.slice(0, 3));
@@ -1435,7 +1230,6 @@
       subtractVectors: subtractVectors,
       scaleVector: scaleVector,
       distance: distance,
-      distanceSq: distanceSq,
       normalize: normalize,
       compose: compose,
       cross: cross,
@@ -1456,8 +1250,6 @@
       xRotate: xRotate,
       yRotate: yRotate,
       zRotate: zRotate,
-      axisRotation: axisRotation,
-      axisRotate: axisRotate,
       scaling: scaling,
       scale: scale,
       multiply: multiply,
@@ -1467,8 +1259,7 @@
       transformDirection: transformDirection,
       transformNormal: transformNormal,
       setDefaultType: setDefaultType,
-    };
-  
+    };  
   }));
   
   
