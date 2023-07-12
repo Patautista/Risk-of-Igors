@@ -151,7 +151,7 @@ function parseOBJ(text) {
     handler(parts, unparsedArgs);
   }
 
-  // remove any arrays that have no entries.
+  // remove any arrays with no entries.
   for (const geometry of geometries) {
     geometry.data = Object.fromEntries(
         Object.entries(geometry.data).filter(([, array]) => array.length > 0));
@@ -223,72 +223,17 @@ async function loadNRun() {
     return;
   }
 
-  const vs = `
-  attribute vec4 a_position;
-  attribute vec3 a_normal;
-  attribute vec4 a_color;
-
-  uniform mat4 u_projection;
-  uniform mat4 u_view;
-  uniform mat4 u_world;
-  uniform vec3 u_viewWorldPosition;
-
-  varying vec3 v_normal;
-  varying vec3 v_surfaceToView;
-  varying vec4 v_color;
-
-  void main() {
-    vec4 worldPosition = u_world * a_position;
-    gl_Position = u_projection * u_view * worldPosition;
-    v_surfaceToView = u_viewWorldPosition - worldPosition.xyz;
-    v_normal = mat3(u_world) * a_normal;
-    v_color = a_color;
-  }
-  `;
-
-  const fs = `
-  precision highp float;
-
-  varying vec3 v_normal;
-  varying vec3 v_surfaceToView;
-  varying vec4 v_color;
-
-  uniform vec3 diffuse;
-  uniform vec3 ambient;
-  uniform vec3 emissive;
-  uniform vec3 specular;
-  uniform float shininess;
-  uniform float opacity;
-  uniform vec3 u_lightDirection;
-  uniform vec3 u_ambientLight;
-
-  void main () {
-    vec3 normal = normalize(v_normal);
-
-    vec3 surfaceToViewDirection = normalize(v_surfaceToView);
-    vec3 halfVector = normalize(u_lightDirection + surfaceToViewDirection);
-
-    float fakeLight = dot(u_lightDirection, normal) * .5 + .5;
-    float specularLight = clamp(dot(normal, halfVector), 0.0, 1.0);
-
-    vec3 effectiveDiffuse = diffuse * v_color.rgb;
-    float effectiveOpacity = opacity * v_color.a;
-
-    gl_FragColor = vec4(
-        emissive +
-        ambient * u_ambientLight +
-        effectiveDiffuse * fakeLight +
-        specular * pow(specularLight, shininess),
-        effectiveOpacity);
-  }
-  `;
+  let response = await fetch("./shaders/vertex_shader.glsl");
+  const vs = await response.text();
+  response = await fetch("./shaders/fragment_shader.glsl");
+  const fs = await response.text();
 
 
   // compiles and links the shaders, looks up attribute and uniform locations
   const meshProgramInfo = webglUtils.createProgramInfo(gl, [vs, fs]);
 
   const objHref = './obj/test2.obj';  
-  const response = await fetch(objHref);
+  response = await fetch(objHref);
   const text = await response.text();
   const obj = parseOBJ(text);
   const baseHref = new URL(objHref, window.location.href);
@@ -361,7 +306,7 @@ async function loadNRun() {
   const extents = getGeometriesExtents(obj.geometries);
   const range = m4.subtractVectors(extents.max, extents.min);
   // amount to move the object so its center is at the origin
-  const objOffset = m4.scaleVector(
+  var objOffset = m4.scaleVector(
       m4.addVectors(
         extents.min,
         m4.scaleVector(range, 0.5)),
@@ -403,29 +348,37 @@ async function loadNRun() {
     return dst;
 } 
 
+  // -- Where the magic happens
   function render(time) {
     time *= 0.001;  // convert to seconds
 
-    //D = A + (B - A) * (moving * step_amount)
-    cameraPosition = m4.addVectors(cameraPosition, m4.scaleVector(m4.subtractVectors(cameraTarget, cameraPosition), moving_back_forth * STEP_AMOUNT));
+    // scaleVector is used to calculate a point halfway the distance between current position and the targets
 
-    // move camera target on the same direction
     //D = A + (B - A) * (moving * step_amount)
-    cameraTarget = m4.addVectors(cameraTarget, m4.scaleVector(m4.subtractVectors(cameraTarget, cameraPosition), moving_back_forth * STEP_AMOUNT));
+    cameraPosition = m4.addVectors(cameraPosition, m4.scaleVector(m4.subtractVectors(cameraTarget, cameraPosition), movement.backForth * STEP_AMOUNT));
+
+    // Move camera target on the same direction
+    //D = A + (B - A) * (moving * step_amount)
+    cameraTarget = m4.addVectors(cameraTarget, m4.scaleVector(m4.subtractVectors(cameraTarget, cameraPosition), movement.backForth * STEP_AMOUNT));
     
-    if (moving_sideways == 1){
-      console.log(90)
-    }
-    if (moving_sideways == -1){
-      console.log(270)
-    }
-    // sideways movement
-    var sideTarget = transformPoint(m4.yRotation(degToRad(90 + moving_sideways * -180)), cameraTarget, cameraPosition)
-    cameraPosition = m4.addVectors(cameraPosition, m4.scaleVector(m4.subtractVectors(sideTarget, cameraPosition), -1 * moving_sideways * STEP_AMOUNT));
-    cameraTarget = m4.addVectors(cameraTarget, m4.scaleVector(m4.subtractVectors(sideTarget, cameraPosition), -1 * moving_sideways * STEP_AMOUNT));
+    // Sideways movement
+    // Define a perpendicular target for sideways movement
+    var sideTarget = transformPoint(m4.yRotation(degToRad(90 + (movement.sideways != 0) * 180)), cameraTarget, cameraPosition)
+    cameraPosition = m4.addVectors(cameraPosition, m4.scaleVector(m4.subtractVectors(sideTarget, cameraPosition), -1 * movement.sideways * STEP_AMOUNT));
+    cameraTarget = m4.addVectors(cameraTarget, m4.scaleVector(m4.subtractVectors(sideTarget, cameraPosition), -1 * movement.sideways * STEP_AMOUNT));
 
+    if (m4.distance(cameraPosition, [0,0,0]) < PROXIMITY_TOLERANCE){
+      console.log("too close!");
+    }
 
-    cameraTarget = transformPoint(m4.yRotation(degToRad(angle)), cameraTarget, cameraPosition)
+    // Rotates cameraTarget in response to input
+    cameraTarget = transformPoint(m4.yRotation(degToRad(angle)), cameraTarget, cameraPosition);
+
+    // Follow player logic
+    //D = A + (B - A) * (moving * step_amount)
+    if(enemyIsIt){
+      enemyPosition = m4.addVectors(enemyPosition, m4.scaleVector(m4.subtractVectors(enemyPosition, cameraPosition), -0.001)); 
+    }
 
     webglUtils.resizeCanvasToDisplaySize(gl.canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -457,7 +410,8 @@ async function loadNRun() {
     // compute the world matrix once since all parts
     // are at the same space.
     let u_world = m4.yRotation(0);
-    u_world = m4.translate(u_world, ...objOffset);
+    //objOffset = m4.addVectors(objOffset, [0, 0, 0.005])
+    u_world = m4.translate(u_world, ...enemyPosition);
 
     for (const {bufferInfo, material} of parts) {
       // calls gl.bindBuffer, gl.enableVertexAttribArray, gl.vertexAttribPointer

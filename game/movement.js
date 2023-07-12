@@ -1,30 +1,33 @@
+// Movement globals (updated every frame)
 var angle = 0;
-var moving_back_forth = 0;
-var moving_sideways = 0;
-const STEP_AMOUNT = 0.008
-const ROT_AMOUNT = 0.5
+var movement = {backForth: 0, sideways: 0}
+
+// Movement constants
+const STEP_AMOUNT = 0.008;
+const ROT_AMOUNT = 0.5;
+const PROXIMITY_TOLERANCE = 2.5;
 
 function handleKeyDown(event) {
     switch (event.key) {
         case "w":
         case "ArrowUp":
-            moving_back_forth = 1; // Move up
+            movement.backForth = 1; // Move up
             break;
         case "s":
         case "ArrowDown": 
-            moving_back_forth = -1; // Move down
+            movement.backForth = -1; // Move down
             break;
         case "ArrowRight":
-            angle = -ROT_AMOUNT; // Move right
+            angle = -ROT_AMOUNT; // Turn right
             break;
         case "ArrowLeft":
-            angle = ROT_AMOUNT; // Move left
+            angle = ROT_AMOUNT; // Turn left
             break;
         case "d":
-            moving_sideways = -1
+            movement.sideways = -1 // Move right
             break;
         case "a":
-            moving_sideways = 1
+            movement.sideways = 1 // Move left
             break;
         default:
             // Ignore other keys
@@ -36,22 +39,24 @@ function handleKeyUp(event) {
     switch (event.key) {
         case "w":
         case "ArrowUp":
-            moving_back_forth = 0.0; // Stop Moving
+            movement.backForth = 0.0; // Stop Moving
             break;
         case "s":
         case "ArrowDown":
-            moving_back_forth = 0.0; // Stop Moving
+            movement.backForth = 0.0; // Stop Moving
             break;
         case "ArrowLeft":
-            angle = 0.00; // Move left
+            angle = 0.00; // Stop Turning
             break;
         case "ArrowRight":
-            angle = 0.00; // Move right
+            angle = 0.00; // Stop Turning
             break;
         case "d":
-            moving_sideways = 0
+            movement.sideways = 0 // Stop Moving
+            break;
         case "a":
-            moving_sideways = 0
+            movement.sideways = 0 // Stop Moving
+            break;
         default:
             // Ignore other keys
             break;
