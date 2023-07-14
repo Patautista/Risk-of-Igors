@@ -5,7 +5,6 @@ var movement = {backForth: 0, sideways: 0}
 // Movement constants
 const STEP_AMOUNT = 0.008;
 const ROT_AMOUNT = 0.5;
-const PROXIMITY_TOLERANCE = 2.5;
 
 function handleKeyDown(event) {
     switch (event.key) {

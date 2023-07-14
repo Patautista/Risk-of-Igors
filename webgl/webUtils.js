@@ -1153,8 +1153,7 @@
    *
    *        bufferInfo = createBufferInfoFromArrays(gl, arrays, mapping);
    *
-   * @return {module:webgl-utils.BufferInfo} A BufferInfo
-   * @memberOf module:webgl-utils
+   * @return {BufferInfo} A BufferInfo
    */
   function createBufferInfoFromArrays(gl, arrays, opt_mapping) {
     const bufferInfo = {
