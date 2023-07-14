@@ -14,51 +14,14 @@ async function main() {
   
     // compiles and links the shaders, looks up attribute and uniform locations
     const meshProgramInfo = webglUtils.createProgramInfo(gl, [vs, fs]);
-  
-    const objHref = './obj/test2.obj';  
-    response = await fetch(objHref);
-    const text = await response.text();
-    const obj = parseOBJ(text);
-    const baseHref = new URL(objHref, window.location.href);
-    const matTexts = await Promise.all(obj.materialLibs.map(async filename => {
-      const matHref = new URL(filename, baseHref).href;
-      const response = await fetch(matHref);
-      return await response.text();
-    }));
-    const materials = parseMTL(matTexts.join('\n'));
-  
-    const parts = obj.geometries.map(({material, data}) => {
-      // Because data is just named arrays like this
-      //
-      // {
-      //   position: [...],
-      //   texcoord: [...],
-      //   normal: [...],
-      // }
-      //
-      // and because those names match the attributes in our vertex
-      // shader we can pass it directly into `createBufferInfoFromArrays`
-      // from the article "less code more fun".
-  
-      if (data.color) {
-        if (data.position.length === data.color.length) {
-          // it's 3. The our helper library assumes 4 so we need
-          // to tell it there are only 3.
-          data.color = { numComponents: 3, data: data.color };
-        }
-      } else {
-        // there are no vertex colors so just use constant white
-        data.color = { value: [1, 1, 1, 1] };
-      }
-  
-      // create a buffer for each array by calling
-      // gl.createBuffer, gl.bindBuffer, gl.bufferData
-      const bufferInfo = webglUtils.createBufferInfoFromArrays(gl, data);
-      return {
-        material: materials[material],
-        bufferInfo,
-      };
-    });
+
+    let enemies = [];
+
+    for(i=0; i<=ENEMY_COUNT-1; i++){
+      let newEnemy = new Enemy([0+i*5,0,0+i*5], true, 0);
+      await newEnemy.createObjFromURL(gl, "./obj/test2.obj")
+      enemies.push(newEnemy);
+    }
   
     function getExtents(positions) {
       const min = positions.slice(0, 3);
@@ -86,14 +49,10 @@ async function main() {
       });
     }
   
-    const extents = getGeometriesExtents(obj.geometries);
+    const extents = getGeometriesExtents(enemies[0].obj.geometries);
     const range = m4.subtractVectors(extents.max, extents.min);
+
     // amount to move the object so its center is at the origin
-    var objOffset = m4.scaleVector(
-        m4.addVectors(
-          extents.min,
-          m4.scaleVector(range, 0.5)),
-        -1);
     let cameraTarget = [0, 0, 0];
   
     // figure out how far away to move the camera so we can likely
@@ -108,10 +67,7 @@ async function main() {
     // for the size of this object.
     const zNear = radius / 100;
     const zFar = radius * 3;
-  
-    enemyPosition = [0,0,0]
-    enemyFacingDirection = m4.subtractVectors(enemyPosition, cameraPosition)
-  
+    
     function degToRad(deg) {
       return deg * Math.PI / 180;
     }
@@ -138,25 +94,23 @@ async function main() {
       cameraPosition = m4.addVectors(cameraPosition, m4.scaleVector(m4.subtractVectors(sideTarget, cameraPosition), -1 * movement.sideways * STEP_AMOUNT));
       cameraTarget = m4.addVectors(cameraTarget, m4.scaleVector(m4.subtractVectors(sideTarget, cameraPosition), -1 * movement.sideways * STEP_AMOUNT));
   
-      if (m4.distance(cameraPosition, enemyPosition) < TOUCH_TOLERANCE){
+      /*
+      if (m4.distance(cameraPosition, enemy1.position) < TOUCH_TOLERANCE){
         console.log("too close!");
       }
-  
+      */
+
       // Rotates cameraTarget in response to input
       cameraTarget = m4.transformPoint(m4.yRotation(degToRad(angle)), cameraTarget, cameraPosition);
   
       // Follow player logic
       //D = A + (B - A) * (moving * step_amount)
-      if(enemyIsIt){
-        enemyFacingDirection = m4.subtractVectors(enemyPosition, cameraPosition)
-        // Move enemy towards player
-        enemyPosition = m4.addVectors(enemyPosition, m4.scaleVector(enemyFacingDirection, -0.001)); 
-        // Rotates enemy
-        // Calculate the angle between enemyFacingDirection and the vector to the player
-        eAngle = -Math.atan2(cameraPosition[2] - enemyPosition[2], cameraPosition[0] - enemyPosition[0]);
-
-        console.log("eAngle: ", eAngle / (Math.PI / 180) + 90)
-      }
+      enemies.forEach(enemy => {
+        if(enemy.state == true){
+          enemy.updateTarget(cameraPosition)
+          enemy.updatePosition(cameraPosition)
+        }
+      });
   
       webglUtils.resizeCanvasToDisplaySize(gl.canvas);
       gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -191,31 +145,33 @@ async function main() {
 
       // Apply the rotation to the object (e.g., using transformation matrices)
 
-      let u_world = m4.identity();
-      u_world = m4.translate(u_world, enemyPosition[0], enemyPosition[1], enemyPosition[2])
-      if(currentAngle == eAngle / (Math.PI / 180) + 90){
-        currentAngle = 0;
-        console.log("NOT ROTATING :(")
-      }
-      else if(currentAngle > eAngle / (Math.PI / 180) + 90){
-        currentAngle = currentAngle - 0.2;
-      }
-      else if(currentAngle < eAngle / (Math.PI / 180) + 90){
-        currentAngle = currentAngle + 0.2;
-      }  
-      u_world = m4.multiply(u_world, m4.yRotation(degToRad(currentAngle)))
+      enemies.forEach(enemy => {
+        let u_world = m4.identity();
+        u_world = m4.translate(u_world, ...enemy.position)
+        if(enemy.currentAngle == enemy.targetAngle / (Math.PI / 180) + 90){
+          enemy.currentAngle = 0;
+          console.log("NOT ROTATING :(")
+        }
+        else if(enemy.currentAngle > enemy.targetAngle / (Math.PI / 180) + 90){
+          enemy.currentAngle = enemy.currentAngle - 0.1;
+        }
+        else if(enemy.currentAngle < enemy.targetAngle / (Math.PI / 180) + 90){
+          enemy.currentAngle = enemy.currentAngle + 0.1;
+        } 
+        u_world = m4.multiply(u_world, m4.yRotation(degToRad(enemy.currentAngle - 90)))
 
 
-      for (const {bufferInfo, material} of parts) {
-        // calls gl.bindBuffer, gl.enableVertexAttribArray, gl.vertexAttribPointer
-        webglUtils.setBuffersAndAttributes(gl, meshProgramInfo, bufferInfo);
-        // calls gl.uniform
-        webglUtils.setUniforms(meshProgramInfo, {
-          u_world,
-        }, material);
-        // calls gl.drawArrays or gl.drawElements
-        webglUtils.drawBufferInfo(gl, bufferInfo);
-      }
+        for (const {bufferInfo, material} of enemy.parts) {
+          // calls gl.bindBuffer, gl.enableVertexAttribArray, gl.vertexAttribPointer
+          webglUtils.setBuffersAndAttributes(gl, meshProgramInfo, bufferInfo);
+          // calls gl.uniform
+          webglUtils.setUniforms(meshProgramInfo, {
+            u_world,
+          }, material);
+          // calls gl.drawArrays or gl.drawElements
+          webglUtils.drawBufferInfo(gl, bufferInfo);
+        }
+      });
   
       requestAnimationFrame(render);
     }
