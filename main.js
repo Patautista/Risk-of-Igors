@@ -107,7 +107,6 @@ async function main() {
       //D = A + (B - A) * (moving * step_amount)
       enemies.forEach(enemy => {
         if(enemy.state == true){
-          enemy.updateTarget(cameraPosition)
           enemy.updatePosition(cameraPosition)
         }
       });
