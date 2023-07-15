@@ -22,6 +22,9 @@ async function main() {
       await newEnemy.createObjFromURL(gl, "./obj/test2.obj")
       enemies.push(newEnemy);
     }
+
+    let scenario = new Scenario();
+    await scenario.createObjFromURL(gl, "./obj/scenario.obj")
   
     function getExtents(positions) {
       const min = positions.slice(0, 3);
@@ -66,7 +69,7 @@ async function main() {
     // Set zNear and zFar to something hopefully appropriate
     // for the size of this object.
     const zNear = radius / 100;
-    const zFar = radius * 3;
+    const zFar = radius * 25;
     
     function degToRad(deg) {
       return deg * Math.PI / 180;
@@ -171,6 +174,18 @@ async function main() {
           webglUtils.drawBufferInfo(gl, bufferInfo);
         }
       });
+
+      for (const {bufferInfo, material} of scenario.parts) {
+        let u_world = m4.identity();
+        // calls gl.bindBuffer, gl.enableVertexAttribArray, gl.vertexAttribPointer
+        webglUtils.setBuffersAndAttributes(gl, meshProgramInfo, bufferInfo);
+        // calls gl.uniform
+        webglUtils.setUniforms(meshProgramInfo, {
+          u_world,
+        }, material);
+        // calls gl.drawArrays or gl.drawElements
+        webglUtils.drawBufferInfo(gl, bufferInfo);
+      }
   
       requestAnimationFrame(render);
     }
