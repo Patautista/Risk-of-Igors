@@ -1,38 +1,32 @@
-
 // GEOMETRY
 
 function parseOBJ(text) {
+  // because indices are base 1 let's just fill in the 0th data
   const objPositions = [[0, 0, 0]];
   const objTexcoords = [[0, 0]];
   const objNormals = [[0, 0, 0]];
   const objColors = [[0, 0, 0]];
 
   // same order as `f` indices
-  const objVertexData = [
-    objPositions,
-    objTexcoords,
-    objNormals,
-    objColors,
-  ];
+  const objVertexData = [objPositions, objTexcoords, objNormals, objColors];
 
   // same order as `f` indices
   let webglVertexData = [
-    [],   // positions
-    [],   // texcoords
-    [],   // normals
-    [],   // colors
+    [], // positions
+    [], // texcoords
+    [], // normals
+    [], // colors
   ];
 
   const materialLibs = [];
   const geometries = [];
   let geometry;
-  let groups = ['default'];
-  let material = 'default';
-  let object = 'default';
+  let groups = ["default"];
+  let material = "default";
+  let object = "default";
 
   const noop = () => {};
 
-  // Update geometry
   function newGeometry() {
     // If there is an existing geometry and it's
     // not empty then start a new one.
@@ -47,12 +41,7 @@ function parseOBJ(text) {
       const texcoord = [];
       const normal = [];
       const color = [];
-      webglVertexData = [
-        position,
-        texcoord,
-        normal,
-        color,
-      ];
+      webglVertexData = [position, texcoord, normal, color];
       geometry = {
         object,
         groups,
@@ -69,7 +58,7 @@ function parseOBJ(text) {
   }
 
   function addVertex(vert) {
-    const ptn = vert.split('/');
+    const ptn = vert.split("/");
     ptn.forEach((objIndexStr, i) => {
       if (!objIndexStr) {
         return;
@@ -85,7 +74,6 @@ function parseOBJ(text) {
     });
   }
 
-  // object with methods for parsing possible keywords
   const keywords = {
     v(parts) {
       // if there are more than 3 values here they are vertex colors
@@ -112,7 +100,7 @@ function parseOBJ(text) {
         addVertex(parts[tri + 2]);
       }
     },
-    s: noop,    // smoothing group
+    s: noop, // smoothing group
     mtllib(parts, unparsedArgs) {
       // the spec says there can be multiple filenames here
       // but many exist with spaces in a single filename
@@ -133,10 +121,10 @@ function parseOBJ(text) {
   };
 
   const keywordRE = /(\w*)(?: )*(.*)/;
-  const lines = text.split('\n');
+  const lines = text.split("\n");
   for (let lineNo = 0; lineNo < lines.length; ++lineNo) {
     const line = lines[lineNo].trim();
-    if (line === '' || line.startsWith('#')) {
+    if (line === "" || line.startsWith("#")) {
       continue;
     }
     const m = keywordRE.exec(line);
@@ -147,16 +135,17 @@ function parseOBJ(text) {
     const parts = line.split(/\s+/).slice(1);
     const handler = keywords[keyword];
     if (!handler) {
-      console.warn('unhandled keyword:', keyword);  // eslint-disable-line no-console
+      console.warn("unhandled keyword:", keyword); // eslint-disable-line no-console
       continue;
     }
     handler(parts, unparsedArgs);
   }
 
-  // remove any arrays with no entries.
+  // remove any arrays that have no entries.
   for (const geometry of geometries) {
     geometry.data = Object.fromEntries(
-        Object.entries(geometry.data).filter(([, array]) => array.length > 0));
+      Object.entries(geometry.data).filter(([, array]) => array.length > 0)
+    );
   }
 
   return {
@@ -182,24 +171,46 @@ function parseMTL(text) {
       materials[unparsedArgs] = material;
     },
     /* eslint brace-style:0 */
-    Ns(parts)       { material.shininess      = parseFloat(parts[0]); },
-    Ka(parts)       { material.ambient        = parts.map(parseFloat); },
-    Kd(parts)       { material.diffuse        = parts.map(parseFloat); },
-    Ks(parts)       { material.specular       = parts.map(parseFloat); },
-    Ke(parts)       { material.emissive       = parts.map(parseFloat); },
-    map_Kd(parts, unparsedArgs)   { material.diffuseMap = parseMapArgs(unparsedArgs); },
-    map_Ns(parts, unparsedArgs)   { material.specularMap = parseMapArgs(unparsedArgs); },
-    map_Bump(parts, unparsedArgs) { material.normalMap = parseMapArgs(unparsedArgs); },
-    Ni(parts)       { material.opticalDensity = parseFloat(parts[0]); },
-    d(parts)        { material.opacity        = parseFloat(parts[0]); },
-    illum(parts)    { material.illum          = parseInt(parts[0]); },
+    Ns(parts) {
+      material.shininess = parseFloat(parts[0]);
+    },
+    Ka(parts) {
+      material.ambient = parts.map(parseFloat);
+    },
+    Kd(parts) {
+      material.diffuse = parts.map(parseFloat);
+    },
+    Ks(parts) {
+      material.specular = parts.map(parseFloat);
+    },
+    Ke(parts) {
+      material.emissive = parts.map(parseFloat);
+    },
+    map_Kd(parts, unparsedArgs) {
+      material.diffuseMap = parseMapArgs(unparsedArgs);
+    },
+    map_Ns(parts, unparsedArgs) {
+      material.specularMap = parseMapArgs(unparsedArgs);
+    },
+    map_Bump(parts, unparsedArgs) {
+      material.normalMap = parseMapArgs(unparsedArgs);
+    },
+    Ni(parts) {
+      material.opticalDensity = parseFloat(parts[0]);
+    },
+    d(parts) {
+      material.opacity = parseFloat(parts[0]);
+    },
+    illum(parts) {
+      material.illum = parseInt(parts[0]);
+    },
   };
 
   const keywordRE = /(\w*)(?: )*(.*)/;
-  const lines = text.split('\n');
+  const lines = text.split("\n");
   for (let lineNo = 0; lineNo < lines.length; ++lineNo) {
     const line = lines[lineNo].trim();
-    if (line === '' || line.startsWith('#')) {
+    if (line === "" || line.startsWith("#")) {
       continue;
     }
     const m = keywordRE.exec(line);
@@ -210,7 +221,7 @@ function parseMTL(text) {
     const parts = line.split(/\s+/).slice(1);
     const handler = keywords[keyword];
     if (!handler) {
-      console.warn('unhandled keyword:', keyword);  // eslint-disable-line no-console
+      console.warn("unhandled keyword:", keyword); // eslint-disable-line no-console
       continue;
     }
     handler(parts, unparsedArgs);
@@ -233,7 +244,7 @@ function create1PixelTexture(gl, pixel) {
 
 function createTexture(gl, url) {
   const texture = create1PixelTexture(gl, [128, 192, 255, 255]);
-  // Asynchronously load an image 
+  // Asynchronously load an image
   const image = new Image();
   image.src = url;
   image.addEventListener('load', function() {
@@ -254,61 +265,4 @@ function createTexture(gl, url) {
     }
   });
   return texture;
-}
-
-function makeIndexIterator(indices) {
-  let ndx = 0;
-  const fn = () => indices[ndx++];
-  fn.reset = () => { ndx = 0; };
-  fn.numElements = indices.length;
-  return fn;
-}
-
-function makeUnindexedIterator(positions) {
-  let ndx = 0;
-  const fn = () => ndx++;
-  fn.reset = () => { ndx = 0; };
-  fn.numElements = positions.length / 3;
-  return fn;
-}
-
-const subtractVector2 = (a, b) => a.map((v, ndx) => v - b[ndx]);
-
-function generateTangents(position, texcoord, indices) {
-  const getNextIndex = indices ? makeIndexIterator(indices) : makeUnindexedIterator(position);
-  const numFaceVerts = getNextIndex.numElements;
-  const numFaces = numFaceVerts / 3;
-
-  const tangents = [];
-  for (let i = 0; i < numFaces; ++i) {
-    const n1 = getNextIndex();
-    const n2 = getNextIndex();
-    const n3 = getNextIndex();
-
-    const p1 = position.slice(n1 * 3, n1 * 3 + 3);
-    const p2 = position.slice(n2 * 3, n2 * 3 + 3);
-    const p3 = position.slice(n3 * 3, n3 * 3 + 3);
-
-    const uv1 = texcoord.slice(n1 * 2, n1 * 2 + 2);
-    const uv2 = texcoord.slice(n2 * 2, n2 * 2 + 2);
-    const uv3 = texcoord.slice(n3 * 2, n3 * 2 + 2);
-
-    const dp12 = m4.subtractVectors(p2, p1);
-    const dp13 = m4.subtractVectors(p3, p1);
-
-    const duv12 = subtractVector2(uv2, uv1);
-    const duv13 = subtractVector2(uv3, uv1);
-
-    const f = 1.0 / (duv12[0] * duv13[1] - duv13[0] * duv12[1]);
-    const tangent = Number.isFinite(f)
-      ? m4.normalize(m4.scaleVector(m4.subtractVectors(
-          m4.scaleVector(dp12, duv13[1]),
-          m4.scaleVector(dp13, duv12[1]),
-        ), f))
-      : [1, 0, 0];
-
-    tangents.push(...tangent, ...tangent, ...tangent);
-  }
-
-  return tangents;
 }
