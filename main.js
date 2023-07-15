@@ -18,7 +18,9 @@ async function main() {
     let enemies = [];
 
     for(i=0; i<=ENEMY_COUNT-1; i++){
-      let newEnemy = new Enemy([0+i*5,0,0+i*5], true, 0);
+      p = m4.generateRandomPoint([0,0,0], 20)
+      p[1] = 0
+      let newEnemy = new Enemy(p, true, 0);
       await newEnemy.createObjFromURL(gl, "./obj/test2.obj")
       enemies.push(newEnemy);
     }
@@ -176,7 +178,7 @@ async function main() {
       });
 
       for (const {bufferInfo, material} of scenario.parts) {
-        let u_world = m4.identity();
+        let u_world = m4.translate(m4.identity(), 0,-10.7,0);
         // calls gl.bindBuffer, gl.enableVertexAttribArray, gl.vertexAttribPointer
         webglUtils.setBuffersAndAttributes(gl, meshProgramInfo, bufferInfo);
         // calls gl.uniform
