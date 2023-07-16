@@ -145,6 +145,10 @@ async function main() {
       enemies.forEach(enemy => {
         let u_world = m4.identity();
         let target = enemy.targetAngle / (Math.PI / 180) + 90
+        let rot_speed = 0.1;
+        if(enemy.state){
+          rot_speed = rot_speed * 2.5;
+        }
         u_world = m4.translate(u_world, ...enemy.position)
         if(enemy.currentAngle == target){
           enemy.currentAngle = target
@@ -158,10 +162,10 @@ async function main() {
         }
         // Decide which way to turn
         if(enemy.currentAngle > target){
-          enemy.currentAngle = enemy.currentAngle - 0.1;
+          enemy.currentAngle = enemy.currentAngle - rot_speed;
         }
         else if(enemy.currentAngle < target){
-          enemy.currentAngle = enemy.currentAngle + 0.1;
+          enemy.currentAngle = enemy.currentAngle + rot_speed;
         }
         u_world = m4.multiply(u_world, m4.yRotation(degToRad(enemy.currentAngle - 90)))
 

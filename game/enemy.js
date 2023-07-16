@@ -78,10 +78,22 @@ class Enemy {
         });
     }
     updatePosition(Target){
-
+      let speed = IDLE_SPEED;
+      if(m4.distance(Target, this.position) <= BASE_AGGRESSIVE_RANGE + BASE_AGGRESSIVE_RANGE/2 * this.difficulty){
+        // Enemy becomes aggressive
+        if(!this.state){
+          try{
+            ENEMY_SOUND.play();
+          } catch(e){}
+        }
+        this.state = true;
+        speed = BASE_AGGRESSIVE_SPEED + BASE_AGGRESSIVE_SPEED * this.difficulty;
+      } else{
+        this.state = false;
+      }
       if(!this.state){
         Target = this.idleSpot
-        if(m4.distance(Target, this.position) < 0.01){
+        if(m4.distance(Target, this.position) < BASE_AGGRESSIVE_SPEED){
           if(this.idleCounter == 0){
             // Find new spot to walk to
             this.idleSpot = m4.generateRandomPoint(this.position, 5);
@@ -89,19 +101,19 @@ class Enemy {
             this.idleCounter = IDLE_COUNT;
           }
           else{
+            // I'll be here for a while...
             this.idleCounter -= 1;
           }
         } else{
           Target = this.idleSpot
         }
       } 
-      console.log(m4.distance(Target, this.position));
       // Rotation
       this.facingDirection = m4.subtractVectors(Target, this.position);
       // Translation
       // Rounding the vector is useful for keeping the movement speed as constant as possible
-      let movingDirection = m4.scaleVector(this.facingDirection, ENEMY_SPEED/m4.length(this.facingDirection));
-      if(m4.length(movingDirection) > ENEMY_SPEED){
+      let movingDirection = m4.scaleVector(this.facingDirection, speed/m4.length(this.facingDirection));
+      if(m4.length(movingDirection) > speed){
         movingDirection = m4.roundVector(1e4, movingDirection)
       }
       this.position = m4.addVectors(this.position, movingDirection); 
@@ -109,8 +121,10 @@ class Enemy {
     }
 }
 
-const ENEMY_SPEED = 0.01;
-const ENEMY_COUNT = 1;
+const ENEMY_COUNT = 4;
 const TOUCH_TOLERANCE = 2.5;
-const AGGRESSIVE_TOLERANCE = 5;
+const BASE_AGGRESSIVE_SPEED = 0.015;
+const IDLE_SPEED = 0.01;
+const BASE_AGGRESSIVE_RANGE = 10;
 const IDLE_COUNT = 250
+const ENEMY_SOUND = new Audio('./sound/aggressive.mp3');
