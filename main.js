@@ -20,7 +20,7 @@ async function main() {
     for(i=0; i<=ENEMY_COUNT-1; i++){
       p = m4.generateRandomPoint([0,0,0], 20)
       p[1] = 0
-      let newEnemy = new Enemy(p, true, 0);
+      let newEnemy = new Enemy(p, false, 0);
       await newEnemy.createObjFromURL(gl, "./obj/test2.obj")
       enemies.push(newEnemy);
     }
@@ -111,9 +111,7 @@ async function main() {
       // Follow player logic
       //D = A + (B - A) * (moving * step_amount)
       enemies.forEach(enemy => {
-        if(enemy.state == true){
-          enemy.updatePosition(cameraPosition)
-        }
+        enemy.updatePosition(cameraPosition)
       });
   
       webglUtils.resizeCanvasToDisplaySize(gl.canvas);
@@ -143,35 +141,28 @@ async function main() {
       // calls gl.uniform
       webglUtils.setUniforms(meshProgramInfo, sharedUniforms);
   
-      // compute the world matrix once since all parts
-      // are at the same space.
-
-
-      // Apply the rotation to the object (e.g., using transformation matrices)
-
+      // render enemies
       enemies.forEach(enemy => {
         let u_world = m4.identity();
-        let sum = (enemy.currentAngle - enemy.targetAngle / (Math.PI/180))
         let target = enemy.targetAngle / (Math.PI / 180) + 90
         u_world = m4.translate(u_world, ...enemy.position)
         if(enemy.currentAngle == target){
           enemy.currentAngle = target
         }
-        if(enemy.currentAngle < -80 && target > 180){
+        // Logic for avoiding turning more than 180 degrees due to Math.atan2() discontinuity
+        if(enemy.currentAngle <= -80 && target > 180){
           enemy.currentAngle += 360
         }
         if(enemy.currentAngle >= 260 && target < 180){
           enemy.currentAngle -= 360
         }
+        // Decide which way to turn
         if(enemy.currentAngle > target){
           enemy.currentAngle = enemy.currentAngle - 0.1;
         }
         else if(enemy.currentAngle < target){
           enemy.currentAngle = enemy.currentAngle + 0.1;
         }
-        console.log("sum: ", sum.toFixed(2))
-        console.log("target is: ", target.toFixed(3))
-        console.log("current is: ", enemy.currentAngle.toFixed(3)) 
         u_world = m4.multiply(u_world, m4.yRotation(degToRad(enemy.currentAngle - 90)))
 
 
@@ -187,6 +178,7 @@ async function main() {
         }
       });
 
+      // render scenario
       for (const {bufferInfo, material} of scenario.parts) {
         let u_world = m4.translate(m4.identity(), 0,-10.7,0);
         // calls gl.bindBuffer, gl.enableVertexAttribArray, gl.vertexAttribPointer

@@ -2,15 +2,16 @@ class Enemy {
     constructor(intialPosition, intialState, intialDifficulty) {
       this.position = intialPosition;
       this.state = intialState;
-      this.difficulty = intialDifficulty
-      this.facingDirection = [0,0,0]
+      this.difficulty = intialDifficulty;
+      this.idleSpot = m4.generateRandomPoint(this.position, 5);
+      this.idleSpot[1] = 0;
+      this.idleCounter = IDLE_COUNT;
+      this.facingDirection = [0,0,0];
       this.obj;
       this.parts;
       this.currentAngle = 0;
       this.targetAngle;
     }
-    targetAngle;
-    currentAngle;
     async createObjFromURL(gl, url){
         const response = await fetch(url);
         const text = await response.text();
@@ -77,21 +78,39 @@ class Enemy {
         });
     }
     updatePosition(Target){
-        // Rotation
-        this.facingDirection = m4.subtractVectors(Target, this.position);
-        // Translation
-        // Rounding the vector is useful for keeping the movement speed as constant as possible
-        let movingDirection = m4.scaleVector(this.facingDirection, ENEMY_SPEED/m4.length(this.facingDirection));
-        if(m4.length(movingDirection) > ENEMY_SPEED){
-          movingDirection = m4.roundVector(1e4, movingDirection)
+
+      if(!this.state){
+        Target = this.idleSpot
+        if(m4.distance(Target, this.position) < 0.01){
+          if(this.idleCounter == 0){
+            // Find new spot to walk to
+            this.idleSpot = m4.generateRandomPoint(this.position, 5);
+            this.idleSpot[1] = 0;
+            this.idleCounter = IDLE_COUNT;
+          }
+          else{
+            this.idleCounter -= 1;
+          }
+        } else{
+          Target = this.idleSpot
         }
-        this.position = m4.addVectors(this.position, movingDirection); 
-        this.targetAngle = -Math.atan2(Target[2] -  this.position[2], Target[0] -  this.position[0]);
-        //console.log("angle: ", this.targetAngle / (Math.PI/180) )
-        //console.log("current angle: ", this.currentAngle)
+      } 
+      console.log(m4.distance(Target, this.position));
+      // Rotation
+      this.facingDirection = m4.subtractVectors(Target, this.position);
+      // Translation
+      // Rounding the vector is useful for keeping the movement speed as constant as possible
+      let movingDirection = m4.scaleVector(this.facingDirection, ENEMY_SPEED/m4.length(this.facingDirection));
+      if(m4.length(movingDirection) > ENEMY_SPEED){
+        movingDirection = m4.roundVector(1e4, movingDirection)
+      }
+      this.position = m4.addVectors(this.position, movingDirection); 
+      this.targetAngle = -Math.atan2(Target[2] -  this.position[2], Target[0] -  this.position[0]);
     }
 }
 
-const ENEMY_SPEED = 0.0001;
+const ENEMY_SPEED = 0.01;
 const ENEMY_COUNT = 1;
 const TOUCH_TOLERANCE = 2.5;
+const AGGRESSIVE_TOLERANCE = 5;
+const IDLE_COUNT = 250
