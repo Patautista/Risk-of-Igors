@@ -82,14 +82,16 @@ class Enemy {
         // Translation
         // Rounding the vector is useful for keeping the movement speed as constant as possible
         let movingDirection = m4.scaleVector(this.facingDirection, ENEMY_SPEED/m4.length(this.facingDirection));
-        if(m4.length(movingDirection)>ENEMY_SPEED){
+        if(m4.length(movingDirection) > ENEMY_SPEED){
           movingDirection = m4.roundVector(1e4, movingDirection)
         }
         this.position = m4.addVectors(this.position, movingDirection); 
         this.targetAngle = -Math.atan2(Target[2] -  this.position[2], Target[0] -  this.position[0]);
+        //console.log("angle: ", this.targetAngle / (Math.PI/180) )
+        //console.log("current angle: ", this.currentAngle)
     }
 }
 
 const ENEMY_SPEED = 0.0001;
-const ENEMY_COUNT = 2;
+const ENEMY_COUNT = 1;
 const TOUCH_TOLERANCE = 2.5;

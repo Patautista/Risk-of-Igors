@@ -151,17 +151,27 @@ async function main() {
 
       enemies.forEach(enemy => {
         let u_world = m4.identity();
+        let sum = (enemy.currentAngle - enemy.targetAngle / (Math.PI/180))
+        let target = enemy.targetAngle / (Math.PI / 180) + 90
         u_world = m4.translate(u_world, ...enemy.position)
-        if(enemy.currentAngle == enemy.targetAngle / (Math.PI / 180) + 90){
-          enemy.currentAngle = 0;
-          console.log("NOT ROTATING :(")
+        if(enemy.currentAngle == target){
+          enemy.currentAngle = target
         }
-        else if(enemy.currentAngle > enemy.targetAngle / (Math.PI / 180) + 90){
+        if(enemy.currentAngle < -80 && target > 180){
+          enemy.currentAngle += 360
+        }
+        if(enemy.currentAngle >= 260 && target < 180){
+          enemy.currentAngle -= 360
+        }
+        if(enemy.currentAngle > target){
           enemy.currentAngle = enemy.currentAngle - 0.1;
         }
-        else if(enemy.currentAngle < enemy.targetAngle / (Math.PI / 180) + 90){
+        else if(enemy.currentAngle < target){
           enemy.currentAngle = enemy.currentAngle + 0.1;
-        } 
+        }
+        console.log("sum: ", sum.toFixed(2))
+        console.log("target is: ", target.toFixed(3))
+        console.log("current is: ", enemy.currentAngle.toFixed(3)) 
         u_world = m4.multiply(u_world, m4.yRotation(degToRad(enemy.currentAngle - 90)))
 
 
