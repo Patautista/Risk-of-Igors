@@ -3,6 +3,7 @@ class Trap {
       this.position = position;
       this.obj;
       this.parts;
+      this.boundingRadius = 0.3;
     }
     async createObjFromURL(gl, url){
         const response = await fetch(url);
