@@ -147,6 +147,12 @@ class Enemy {
         movingDirection = m4.roundVector(1e4, movingDirection);
       }
       this.position = m4.addVectors(this.position, movingDirection);
+      if(this.state == STATE_AGGRESSIVE){
+        const random = Math.random();
+        // Scale the random number to the range between -0.5 and 0.5
+        const scaledRandom = random;
+        this.position[1] = scaledRandom/7;
+      }
       this.targetAngle = -Math.atan2(
         Target[2] - this.position[2],
         Target[0] - this.position[0]
@@ -179,7 +185,7 @@ class Enemy {
   }
 }
 
-const ENEMY_COUNT = 1;
+const ENEMY_COUNT = 5;
 const TOUCH_TOLERANCE = 2.5;
 const BASE_AGGRESSIVE_SPEED = 0.015;
 const IDLE_SPEED = 0.01;

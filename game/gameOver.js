@@ -10,6 +10,8 @@ function checkCollisionBox(box1, box2) {
   
   // Define a flag to check if the game is over
   let IS_GAME_OVER = false;
+  // Define a flag to check if the game has started
+  let GAME_STARTED = true;
   
   // Function to show the game over screen
   function gameOver(score) {

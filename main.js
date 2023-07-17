@@ -157,6 +157,11 @@ async function main() {
       } 
       else{
         if(jump != 0) jump -= 0.1;
+        if(jump > 0.0 && jump < 0.3){
+          try{
+            JUMP_IMPACT_SOUND.play();
+          } catch(e){}
+        }
       }
       jump = Math.round( jump * 10 )/10
       cameraPosition[1] = jump;

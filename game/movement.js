@@ -9,9 +9,11 @@ const rotation = {yaw: 0, pitch: 0,};
 const CAMERA_SPEED = 0.1; // Adjust the camera movement speed here
 const ROT_SPEED = 0.005; // Adjust the camera rotation speed here
 const WALKING_SOUND = new Audio("./sound/walking.mp3");
-const JUMP_AMOUNT = 7.0;
+const JUMP_IMPACT_SOUND = new Audio("./sound/jump_impact.mp3");
+const JUMP_AMOUNT = 9.0;
 
 function handleKeyDown(event) {
+
     switch (event.key) {
         case "w":
         case "ArrowUp":
