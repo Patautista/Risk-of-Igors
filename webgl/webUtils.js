@@ -13,18 +13,6 @@
 
   const topWindow = this;
 
-  /** @module webgl-utils */
-
-  function isInIFrame(w) {
-    w = w || topWindow;
-    return w !== w.top;
-  }
-
-  if (!isInIFrame()) {
-    console.log("%c%s", 'color:blue;font-weight:bold;', 'for more about webgl-utils.js see:');  // eslint-disable-line
-    console.log("%c%s", 'color:blue;font-weight:bold;', 'https://webglfundamentals.org/webgl/lessons/webgl-boilerplate.html');  // eslint-disable-line
-  }
-
   /**
    * Wrapped logging function.
    * @param {string} msg The message to log.
@@ -44,7 +32,6 @@
    * Error Callback
    * @callback ErrorCallback
    * @param {string} msg error message.
-   * @memberOf module:webgl-utils
    */
 
 
@@ -88,7 +75,6 @@
    * @param {number[]} [opt_locations] The locations for the. A parallel array to opt_attribs letting you assign locations.
    * @param {ErrorCallback} opt_errorCallback callback for errors. By default it just prints an error to the console
    *        on error. If you want something else pass an callback. It's passed an error message.
-   * @memberOf module:webgl-utils
    */
   function createProgram(
       gl, shaders, opt_attribs, opt_locations, opt_errorCallback) {
@@ -120,69 +106,10 @@
     return program;
   }
 
-  /**
-   * Loads a shader from a script tag.
-   * @param {WebGLRenderingContext} gl The WebGLRenderingContext to use.
-   * @param {string} scriptId The id of the script tag.
-   * @param {number} opt_shaderType The type of shader. If not passed in it will
-   *     be derived from the type of the script tag.
-   * @param {ErrorCallback} opt_errorCallback callback for errors.
-   * @return {WebGLShader} The created shader.
-   */
-  function createShaderFromScript(
-      gl, scriptId, opt_shaderType, opt_errorCallback) {
-    let shaderSource = '';
-    let shaderType;
-    const shaderScript = document.getElementById(scriptId);
-    if (!shaderScript) {
-      throw ('*** Error: unknown script element' + scriptId);
-    }
-    shaderSource = shaderScript.text;
-
-    if (!opt_shaderType) {
-      if (shaderScript.type === 'x-shader/x-vertex') {
-        shaderType = gl.VERTEX_SHADER;
-      } else if (shaderScript.type === 'x-shader/x-fragment') {
-        shaderType = gl.FRAGMENT_SHADER;
-      } else if (shaderType !== gl.VERTEX_SHADER && shaderType !== gl.FRAGMENT_SHADER) {
-        throw ('*** Error: unknown shader type');
-      }
-    }
-
-    return loadShader(
-        gl, shaderSource, opt_shaderType ? opt_shaderType : shaderType,
-        opt_errorCallback);
-  }
-
   const defaultShaderType = [
     'VERTEX_SHADER',
     'FRAGMENT_SHADER',
   ];
-
-  /**
-   * Creates a program from 2 script tags.
-   *
-   * @param {WebGLRenderingContext} gl The WebGLRenderingContext
-   *        to use.
-   * @param {string[]} shaderScriptIds Array of ids of the script
-   *        tags for the shaders. The first is assumed to be the
-   *        vertex shader, the second the fragment shader.
-   * @param {string[]} [opt_attribs] An array of attribs names. Locations will be assigned by index if not passed in
-   * @param {number[]} [opt_locations] The locations for the. A parallel array to opt_attribs letting you assign locations.
-   * @param {ErrorCallback} opt_errorCallback callback for errors. By default it just prints an error to the console
-   *        on error. If you want something else pass an callback. It's passed an error message.
-   * @return {WebGLProgram} The created program.
-   * @memberOf module:webgl-utils
-   */
-  function createProgramFromScripts(
-      gl, shaderScriptIds, opt_attribs, opt_locations, opt_errorCallback) {
-    const shaders = [];
-    for (let ii = 0; ii < shaderScriptIds.length; ++ii) {
-      shaders.push(createShaderFromScript(
-          gl, shaderScriptIds[ii], gl[defaultShaderType[ii]], opt_errorCallback));
-    }
-    return createProgram(gl, shaders, opt_attribs, opt_locations, opt_errorCallback);
-  }
 
   /**
    * Creates a program from 2 sources.
@@ -197,7 +124,7 @@
    * @param {ErrorCallback} opt_errorCallback callback for errors. By default it just prints an error to the console
    *        on error. If you want something else pass an callback. It's passed an error message.
    * @return {WebGLProgram} The created program.
-   * @memberOf module:webgl-utils
+   
    */
   function createProgramFromSources(
       gl, shaderSources, opt_attribs, opt_locations, opt_errorCallback) {
@@ -218,9 +145,6 @@
     return undefined;
   }
 
-  /**
-   * @typedef {Object.<string, function>} Setters
-   */
 
   /**
    * Creates setter functions for all uniforms of a shader
@@ -230,7 +154,7 @@
    *
    * @param {WebGLProgram} program the program to create setters for.
    * @returns {Object.<string, function>} an object with a setter by name for each uniform
-   * @memberOf module:webgl-utils
+   
    */
   function createUniformSetters(gl, program) {
     let textureUnit = 0;
@@ -381,80 +305,11 @@
   /**
    * Set uniforms and binds related textures.
    *
-   * Example:
-   *
-   *     let programInfo = createProgramInfo(
-   *         gl, ["some-vs", "some-fs"]);
-   *
-   *     let tex1 = gl.createTexture();
-   *     let tex2 = gl.createTexture();
-   *
-   *     ... assume we setup the textures with data ...
-   *
-   *     let uniforms = {
-   *       u_someSampler: tex1,
-   *       u_someOtherSampler: tex2,
-   *       u_someColor: [1,0,0,1],
-   *       u_somePosition: [0,1,1],
-   *       u_someMatrix: [
-   *         1,0,0,0,
-   *         0,1,0,0,
-   *         0,0,1,0,
-   *         0,0,0,0,
-   *       ],
-   *     };
-   *
-   *     gl.useProgram(program);
-   *
-   * This will automatically bind the textures AND set the
-   * uniforms.
-   *
-   *     setUniforms(programInfo.uniformSetters, uniforms);
-   *
-   * For the example above it is equivalent to
-   *
-   *     let texUnit = 0;
-   *     gl.activeTexture(gl.TEXTURE0 + texUnit);
-   *     gl.bindTexture(gl.TEXTURE_2D, tex1);
-   *     gl.uniform1i(u_someSamplerLocation, texUnit++);
-   *     gl.activeTexture(gl.TEXTURE0 + texUnit);
-   *     gl.bindTexture(gl.TEXTURE_2D, tex2);
-   *     gl.uniform1i(u_someSamplerLocation, texUnit++);
-   *     gl.uniform4fv(u_someColorLocation, [1, 0, 0, 1]);
-   *     gl.uniform3fv(u_somePositionLocation, [0, 1, 1]);
-   *     gl.uniformMatrix4fv(u_someMatrix, false, [
-   *         1,0,0,0,
-   *         0,1,0,0,
-   *         0,0,1,0,
-   *         0,0,0,0,
-   *       ]);
-   *
-   * Note it is perfectly reasonable to call `setUniforms` multiple times. For example
-   *
-   *     let uniforms = {
-   *       u_someSampler: tex1,
-   *       u_someOtherSampler: tex2,
-   *     };
-   *
-   *     let moreUniforms {
-   *       u_someColor: [1,0,0,1],
-   *       u_somePosition: [0,1,1],
-   *       u_someMatrix: [
-   *         1,0,0,0,
-   *         0,1,0,0,
-   *         0,0,1,0,
-   *         0,0,0,0,
-   *       ],
-   *     };
-   *
-   *     setUniforms(programInfo.uniformSetters, uniforms);
-   *     setUniforms(programInfo.uniformSetters, moreUniforms);
-   *
    * @param {Object.<string, function>|ProgramInfo} setters the setters returned from
    *        `createUniformSetters` or a ProgramInfo from {@link createProgramInfo}.
    * @param {Object.<string, value>} an object with values for the
    *        uniforms.
-   * @memberOf module:webgl-utils
+   
    */
   function setUniforms(setters, ...values) {
     setters = setters.uniformSetters || setters;
@@ -475,7 +330,7 @@
    * @see {@link setAttributes} for example
    * @param {WebGLProgram} program the program to create setters for.
    * @return {Object.<string, function>} an object with a setter for each attribute by name.
-   * @memberOf module:webgl-utils
+   
    */
   function createAttributeSetters(gl, program) {
     const attribSetters = {
@@ -566,7 +421,7 @@
    * @param {ErrorCallback} opt_errorCallback callback for errors. By default it just prints an error to the console
    *        on error. If you want something else pass an callback. It's passed an error message.
    * @return {ProgramInfo} The created program.
-   * @memberOf module:webgl-utils
+   
    */
   function createProgramInfo(
       gl, shaderSources, opt_attribs, opt_locations, opt_errorCallback) {
@@ -601,21 +456,13 @@
     }
   }
 
-  // Add your prefix here.
-  const browserPrefixes = [
-    '',
-    'MOZ_',
-    'OP_',
-    'WEBKIT_',
-  ];
-
   /**
    * Resize a canvas to match the size its displayed.
    * @param {HTMLCanvasElement} canvas The canvas to resize.
    * @param {number} [multiplier] amount to multiply by.
    *    Pass in window.devicePixelRatio for native pixels.
    * @return {boolean} true if the canvas was resized.
-   * @memberOf module:webgl-utils
+   
    */
   function resizeCanvasToDisplaySize(canvas, multiplier) {
     multiplier = multiplier || 1;
@@ -662,13 +509,11 @@
    * creates a typed array with a `push` function attached
    * so that you can easily *push* values.
    *
-   * Also has `numComponents` and `numElements` properties.
-   *
    * @param {number} numComponents number of components
    * @param {number} numElements number of elements. The total size of the array will be `numComponents * numElements`.
    * @param {constructor} opt_type A constructor for the type. Default = `Float32Array`.
    * @return {ArrayBuffer} A typed array.
-   * @memberOf module:webgl-utils
+   
    */
   function createAugmentedTypedArray(numComponents, numElements, opt_type) {
     const Type = opt_type || Float32Array;
@@ -774,7 +619,7 @@
    * @property {number} [offset] offset into buffer in bytes. Default = 0
    * @property {number} [stride] the stride in bytes per element. Default = 0
    * @property {WebGLBuffer} buffer the buffer that contains the data for this attribute
-   * @memberOf module:webgl-utils
+   
    */
 
 
@@ -805,7 +650,7 @@
    * @param {Object.<string, string>} [opt_mapping] mapping from attribute name to array name.
    *     if not specified defaults to "a_name" -> "name".
    * @return {Object.<string, AttribInfo>} the attribs
-   * @memberOf module:webgl-utils
+   
    */
   function createAttribsFromArrays(gl, arrays, opt_mapping) {
     const mapping = opt_mapping || createMapping(arrays);
@@ -886,15 +731,13 @@
    * @property {number} numElements The number of elements to pass to `gl.drawArrays` or `gl.drawElements`.
    * @property {WebGLBuffer} [indices] The indices `ELEMENT_ARRAY_BUFFER` if any indices exist.
    * @property {Object.<string, AttribInfo>} attribs The attribs approriate to call `setAttributes`
-   * @memberOf module:webgl-utils
+   
    */
 
 
   /**
    * Creates a BufferInfo from an object of arrays.
    *
-   * This can be passed to {@link setBuffersAndAttributes} and to
-   * {@link module:webgl-utils:drawBufferInfo}.
    *
    * Given an object like
    *
@@ -917,96 +760,9 @@
    *       },
    *     };
    *
-   *  The properties of arrays can be JavaScript arrays in which case the number of components
-   *  will be guessed.
-   *
-   *     let arrays = {
-   *        position: [0, 0, 0, 10, 0, 0, 0, 10, 0, 10, 10, 0],
-   *        texcoord: [0, 0, 0, 1, 1, 0, 1, 1],
-   *        normal:   [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
-   *        indices:  [0, 1, 2, 1, 2, 3],
-   *     };
-   *
-   *  They can also by TypedArrays
-   *
-   *     let arrays = {
-   *        position: new Float32Array([0, 0, 0, 10, 0, 0, 0, 10, 0, 10, 10, 0]),
-   *        texcoord: new Float32Array([0, 0, 0, 1, 1, 0, 1, 1]),
-   *        normal:   new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]),
-   *        indices:  new Uint16Array([0, 1, 2, 1, 2, 3]),
-   *     };
-   *
-   *  Or augmentedTypedArrays
-   *
-   *     let positions = createAugmentedTypedArray(3, 4);
-   *     let texcoords = createAugmentedTypedArray(2, 4);
-   *     let normals   = createAugmentedTypedArray(3, 4);
-   *     let indices   = createAugmentedTypedArray(3, 2, Uint16Array);
-   *
-   *     positions.push([0, 0, 0, 10, 0, 0, 0, 10, 0, 10, 10, 0]);
-   *     texcoords.push([0, 0, 0, 1, 1, 0, 1, 1]);
-   *     normals.push([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]);
-   *     indices.push([0, 1, 2, 1, 2, 3]);
-   *
-   *     let arrays = {
-   *        position: positions,
-   *        texcoord: texcoords,
-   *        normal:   normals,
-   *        indices:  indices,
-   *     };
-   *
-   * For the last example it is equivalent to
-   *
-   *     let bufferInfo = {
-   *       attribs: {
-   *         a_position: { numComponents: 3, buffer: gl.createBuffer(), },
-   *         a_texcoods: { numComponents: 2, buffer: gl.createBuffer(), },
-   *         a_normals: { numComponents: 3, buffer: gl.createBuffer(), },
-   *       },
-   *       indices: gl.createBuffer(),
-   *       numElements: 6,
-   *     };
-   *
-   *     gl.bindBuffer(gl.ARRAY_BUFFER, bufferInfo.attribs.a_position.buffer);
-   *     gl.bufferData(gl.ARRAY_BUFFER, arrays.position, gl.STATIC_DRAW);
-   *     gl.bindBuffer(gl.ARRAY_BUFFER, bufferInfo.attribs.a_texcoord.buffer);
-   *     gl.bufferData(gl.ARRAY_BUFFER, arrays.texcoord, gl.STATIC_DRAW);
-   *     gl.bindBuffer(gl.ARRAY_BUFFER, bufferInfo.attribs.a_normal.buffer);
-   *     gl.bufferData(gl.ARRAY_BUFFER, arrays.normal, gl.STATIC_DRAW);
-   *     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, bufferInfo.indices);
-   *     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, arrays.indices, gl.STATIC_DRAW);
-   *
    * @param {WebGLRenderingContext} gl A WebGLRenderingContext
    * @param {Object.<string, array|object|typedarray>} arrays Your data
    * @param {Object.<string, string>} [opt_mapping] an optional mapping of attribute to array name.
-   *    If not passed in it's assumed the array names will be mapped to an attribute
-   *    of the same name with "a_" prefixed to it. An other words.
-   *
-   *        let arrays = {
-   *           position: ...,
-   *           texcoord: ...,
-   *           normal:   ...,
-   *           indices:  ...,
-   *        };
-   *
-   *        bufferInfo = createBufferInfoFromArrays(gl, arrays);
-   *
-   *    Is the same as
-   *
-   *        let arrays = {
-   *           position: ...,
-   *           texcoord: ...,
-   *           normal:   ...,
-   *           indices:  ...,
-   *        };
-   *
-   *        let mapping = {
-   *          a_position: "position",
-   *          a_texcoord: "texcoord",
-   *          a_normal:   "normal",
-   *        };
-   *
-   *        bufferInfo = createBufferInfoFromArrays(gl, arrays, mapping);
    *
    * @return {BufferInfo} A BufferInfo
    */
@@ -1048,7 +804,7 @@
    * @param {WebGLRenderingContext} gl A WebGLRenderingContext.
    * @param {Object<string, array|typedarray>} arrays
    * @return {Object<string, WebGLBuffer>} returns an object with one WebGLBuffer per array
-   * @memberOf module:webgl-utils
+   
    */
   function createBuffersFromArrays(gl, arrays) {
     const buffers = { };
@@ -1080,7 +836,7 @@
    * @param {enum} [primitiveType] eg (gl.TRIANGLES, gl.LINES, gl.POINTS, gl.TRIANGLE_STRIP, ...)
    * @param {number} [count] An optional count. Defaults to bufferInfo.numElements
    * @param {number} [offset] An optional offset. Defaults to 0.
-   * @memberOf module:webgl-utils
+   
    */
   function drawBufferInfo(gl, bufferInfo, primitiveType, count, offset) {
     const indices = bufferInfo.indices;
@@ -1101,7 +857,6 @@
     createBufferInfoFromArrays: createBufferInfoFromArrays,
     createAttributeSetters: createAttributeSetters,
     createProgram: createProgram,
-    createProgramFromScripts: createProgramFromScripts,
     createProgramFromSources: createProgramFromSources,
     createProgramInfo: createProgramInfo,
     createUniformSetters: createUniformSetters,
