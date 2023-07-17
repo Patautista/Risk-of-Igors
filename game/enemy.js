@@ -6,12 +6,13 @@ class Enemy {
     this.idleSpot = m4.generateRandomPoint(this.position, 5);
     this.idleSpot[1] = 0;
     this.idleCounter = IDLE_COUNT;
-    this.difficultyCounter = 0;
     this.facingDirection = [0, 0, 0];
     this.obj;
     this.parts;
     this.currentAngle = 0;
     this.targetAngle;
+    this.removed = false;
+    this.boundingRadius = 1;
   }
   async createObjFromURL(gl, url) {
     const response = await fetch(url);
@@ -102,11 +103,11 @@ class Enemy {
     if (this.state == STATE_DISABLED) {
 
     } else {
-      this.difficultyCounter += 1;
-      let speed = IDLE_SPEED;
+      //this.difficultyCounter += 1;
+      let speed = IDLE_SPEED * (2 * (this.difficulty - 1));
       if (
         m4.distance(Target, this.position) <=
-        BASE_AGGRESSIVE_RANGE + (BASE_AGGRESSIVE_RANGE / 2) * this.difficulty
+        BASE_AGGRESSIVE_RANGE + (BASE_AGGRESSIVE_RANGE / 2) * (this.difficulty -1)
       ) {
         // Enemy becomes aggressive
         if (this.state == STATE_IDLE) {
@@ -114,9 +115,9 @@ class Enemy {
             AGGRESSIVE_SOUND.play();
           } catch (e) {}
         }
-        this.difficultyCounter += 100;
+        //this.difficultyCounter += 100;
         this.state = STATE_AGGRESSIVE;
-        speed = BASE_AGGRESSIVE_SPEED + BASE_AGGRESSIVE_SPEED * this.difficulty;
+        speed = BASE_AGGRESSIVE_SPEED + BASE_AGGRESSIVE_SPEED * (2 * this.difficulty);
       } else {
         this.state = STATE_IDLE;
       }
@@ -163,9 +164,22 @@ class Enemy {
             ENEMY_DEAD_SOUND.play();
           } catch (e) {}
           this.state = STATE_DISABLED;
+          // Call deleteObjAfterDelay to delete the obj after a 5-second delay
+          this.deleteObjAfterDelay();
         }
       }
     });
+  }
+
+  async deleteObjAfterDelay() {
+    if (this.state === STATE_DISABLED) {
+      // Wait for 5 seconds using setTimeout
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+
+      this.removed = true;
+
+      console.log("Enemy object deleted after 5 seconds.");
+    }
   }
 }
 

@@ -78,17 +78,77 @@ class Scenario {
             bufferInfo,
           };
         });
-    }
-    render(gl, meshProgramInfo, u_world){
-        for (const {bufferInfo, material} of this.parts) {
-          // calls gl.bindBuffer, gl.enableVertexAttribArray, gl.vertexAttribPointer
-          webglUtils.setBuffersAndAttributes(gl, meshProgramInfo, bufferInfo);
-          // calls gl.uniform
-          webglUtils.setUniforms(meshProgramInfo, {
-            u_world,
-          }, material);
-          // calls gl.drawArrays or gl.drawElements
-          webglUtils.drawBufferInfo(gl, bufferInfo);
-        }
       }
+  // Function to create collision boxes for the scenario
+  createCollisionBoxes() {
+    this.collisionBoxes = this.obj.geometries.map(({ data, material }) => {
+      const modelMatrix = m4.identity(); // Initialize the model matrix as identity for each part
+
+      // If the material has a u_world matrix (from your previous rendering code), use it for the model matrix
+      if (material.u_world) {
+        modelMatrix.set(material.u_world);
+      }
+
+      const { position } = data;
+      const min = [Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY];
+      const max = [Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY];
+
+      // Calculate the bounding box's center
+      
+
+      // Transform each vertex by the model matrix and calculate the minimum and maximum points
+      for (let i = 0; i < position.length; i += 3) {
+        const vertex = [position[i], position[i + 1], position[i + 2]];
+        var center = [0,0,0];
+        
+        const transformedVertex = m4.transformPoint(modelMatrix, vertex, center);
+
+        for (let j = 0; j < 3; j++) {
+          const v = transformedVertex[j];
+          min[j] = Math.min(v, min[j]);
+          max[j] = Math.max(v, max[j]);
+        }
+
+        center = [
+          (min[0] + max[0]) / 2,
+          (min[1] + max[1]) / 2,
+          (min[2] + max[2]) / 2,
+        ];
+      }
+
+      return { min, max };
+    });
+  }
+
+  // Function to check if the camera collides with the scenario
+  checkCollision(cameraPosition) {
+    if (!this.collisionBoxes) {
+      this.createCollisionBoxes();
+    }
+    for (const box of this.collisionBoxes) {
+      if (
+        cameraPosition[0] >= box.min[0] && cameraPosition[0] <= box.max[0] &&
+        cameraPosition[2] >= box.min[2] && cameraPosition[2] <= box.max[2]
+      ) {
+        // Collision detected, handle it accordingly (e.g., stop movement or take damage)
+        return false;
+      }
+    }
+
+    return true;
+  }
+  
+  render(gl, meshProgramInfo, u_world){
+    for (const {bufferInfo, material} of this.parts) {
+      // calls gl.bindBuffer, gl.enableVertexAttribArray, gl.vertexAttribPointer
+      webglUtils.setBuffersAndAttributes(gl, meshProgramInfo, bufferInfo);
+      // calls gl.uniform
+      webglUtils.setUniforms(meshProgramInfo, {
+        u_world,
+      }, material);
+      // calls gl.drawArrays or gl.drawElements
+      webglUtils.drawBufferInfo(gl, bufferInfo);
+    }
+  }
+    
 }

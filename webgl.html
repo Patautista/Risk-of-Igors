@@ -1,24 +1,191 @@
-<html style="background-color: white;">
 
-<head>
-    <title>Avoid Igors!</title>
-    <link rel="stylesheet" href="webgl.css">
-</head>
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Risk of Igors!</title>
+		<style>
+            body, html {width: 100%;height: 100%;}
+            body {background-color: #fff;margin: 0;overflow: hidden;font-family: arial;}
+            #blocker {position: absolute;width: 100%;height: 100%;background-color: rgba(0,0,0,.5);}
+            #instructions {
+                        position: absolute;
+                        left: 50%;
+                        top: 50%;
+                        transform: translate(-50%, -50%);
+                        text-align: center;
+                        font-family: monospace;
+                        color: white;
+                        }
 
-<script src="lib/math.js"></script>
-<script src="lib/m4.js"></script>
-<script src="webgl/objParser.js"></script>
-<script src="webgl/webUtils.js"></script>
-<script src="game/enemy.js"></script>
-<script src="game/traps.js"></script>
-<script src="game/scenario.js"></script>
-<script src="game/movement.js"></script>
-<script src="main.js"></script>
+                        .title {
+                        font-size: 40px;
+                        display: block;
+                        }
 
-<body onload="main()">
+                        p {
+                        font-size: 24px;
+                        margin: 0;
+                        padding: 0;
+                        }
 
-<canvas id="glcanvas1"></canvas>
+                        .description {
+                        font-size: 20px;
+                        display: block;
+                        margin-top: 10px;
+                        }
+            #overlay {
+                        position: absolute;
+                        left: 10px;
+                        top: 10px;
+                        background-color: rgba(78, 16, 223, 0.7);
+                        color: white;
+                        font-family: monospace;
+                        padding: 1em;
+                        border-radius: 1em;
+                        border: 5px solid rgb(27, 4, 56);
+                    }
+                    #gameOverOverlay {
+                        /* Update positioning and size to center it on the screen */
+                        position: absolute;
+                        left: 50%;
+                        top: 50%;
+                        transform: translate(-50%, -50%);
+                        width: 50%;
+                        max-width: 500px;
+                        color: white;
+                        font-family: monospace;
+                        padding: 1em;
+                        border-radius: 1em;
+                        border: 5px solid rgb(27, 4, 56);
+                    }
+		</style>
+	</head>
+    <script src="lib/math.js"></script>
+    <script src="lib/m4.js"></script>
+    <script src="webgl/objParser.js"></script>
+    <script src="webgl/webUtils.js"></script>
+    <script src="game/enemy.js"></script>
+    <script src="game/traps.js"></script>
+    <script src="game/scenario.js"></script>
+    <script src="main.js"></script>
+	<body onload="main()">
+        <div id="crosshair"></div>
 
-</body>
+        <div id="blocker">
 
+            <div id="instructions">
+                <span class="title">Clique para jogar</span>
+                <p>(W, A, S, D = Mover, MOUSE = Olhar ao redor)</p>
+                <span class="description">Fuja dos Igors e leve-os para as armadilhas, cuidado que a cada 30 segundos a dificuldade aumenta e novos Igors nascem! Boa sorte, você não vai sobreviver.</span>
+              </div>
+
+            
+
+        </div>
+        <canvas id="glcanvas1"></canvas>
+        <div id="overlay">
+            <div>FPS: <span id="fps"></span></div>
+            <div>Time: <span id="time"></span></div>
+            <div>Difficulty: <span id="difficulty"></span></div>
+            <div>Score: <span id="score"></span></div>
+        </div>
+
+        <div id="gameOverOverlay">
+            <div>Score: <span id="scoreFinal"></span></div>
+            <div id="gameOverText">Game Over</div>
+        </div>
+
+        <script>
+            var blocker = document.getElementById( 'blocker' );
+            var instructions = document.getElementById( 'instructions' );
+
+            // http://www.html5rocks.com/en/tutorials/pointerlock/intro/
+
+            var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
+
+            if ( havePointerLock ) {
+
+                var element = document.getElementById("glcanvas1")
+
+                var pointerlockchange = function ( event ) {
+
+                    if ( document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element ) {
+
+                        blocker.style.display = 'none';
+
+                    } else {
+
+                        blocker.style.display = '-webkit-box';
+                        blocker.style.display = '-moz-box';
+                        blocker.style.display = 'box';
+
+                        instructions.style.display = '';
+
+                    }
+
+                }
+
+                var pointerlockerror = function ( event ) {
+
+                    instructions.style.display = '';
+
+                }
+
+                // Hook pointer lock state change events
+                document.addEventListener( 'pointerlockchange', pointerlockchange, false );
+                document.addEventListener( 'mozpointerlockchange', pointerlockchange, false );
+                document.addEventListener( 'webkitpointerlockchange', pointerlockchange, false );
+
+                document.addEventListener( 'pointerlockerror', pointerlockerror, false );
+                document.addEventListener( 'mozpointerlockerror', pointerlockerror, false );
+                document.addEventListener( 'webkitpointerlockerror', pointerlockerror, false );
+
+                instructions.addEventListener( 'click', function ( event ) {
+
+                    instructions.style.display = 'none';
+
+                    // Ask the browser to lock the pointer
+                    element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
+
+                    if ( /Firefox/i.test( navigator.userAgent ) ) {
+
+                        var fullscreenchange = function ( event ) {
+
+                            if ( document.fullscreenElement === element || document.mozFullscreenElement === element || document.mozFullScreenElement === element ) {
+
+                                document.removeEventListener( 'fullscreenchange', fullscreenchange );
+                                document.removeEventListener( 'mozfullscreenchange', fullscreenchange );
+
+                                element.requestPointerLock();
+                            }
+
+                        }
+
+                        document.addEventListener( 'fullscreenchange', fullscreenchange, false );
+                        document.addEventListener( 'mozfullscreenchange', fullscreenchange, false );
+
+                        element.requestFullscreen = element.requestFullscreen || element.mozRequestFullscreen || element.mozRequestFullScreen || element.webkitRequestFullscreen;
+
+                        element.requestFullscreen();
+                        var canvas = document.getElementById("glcanvas1");
+                        document.focus();
+
+                    } else {
+
+                        element.requestPointerLock();
+
+                    }
+
+                }, false );
+
+            } else {
+
+                instructions.innerHTML = 'Your browser doesn\'t seem to support Pointer Lock API';
+
+            }
+        </script>
+        
+        <script src="game/movement.js"></script>
+	</body>
 </html>
