@@ -97,7 +97,7 @@ class Enemy {
       webglUtils.drawBufferInfo(gl, bufferInfo);
     }
   }
-  updatePosition(Target, traps) {
+  updatePosition(Target, traps, scenario) {
     this.lookForTraps(traps);
     // Check if enemy has stepped on a trap
     if (this.state == STATE_DISABLED) {
@@ -146,7 +146,10 @@ class Enemy {
       if (m4.length(movingDirection) > speed) {
         movingDirection = m4.roundVector(1e4, movingDirection);
       }
-      this.position = m4.addVectors(this.position, movingDirection);
+      var projected_position = m4.addVectors(this.position, movingDirection);
+      if (!scenario.checkCollision(projected_position)) {
+        this.position = projected_position;
+      }
       if(this.state == STATE_AGGRESSIVE){
         const random = Math.random();
         // Scale the random number to the range between -0.5 and 0.5

@@ -8,7 +8,7 @@ const rotation = {yaw: 0, pitch: 0,};
 let jump = 0;
 
 const CAMERA_SPEED = 0.1; // Adjust the camera movement speed here
-const ROT_SPEED = 0.005; // Adjust the camera rotation speed here
+const ROT_SPEED = 0.01; // Adjust the camera rotation speed here
 const WALKING_SOUND = new Audio("./sound/walking.mp3");
 const JUMP_IMPACT_SOUND = new Audio("./sound/jump_impact.mp3");
 const JUMP_AMOUNT = 9.0;
@@ -25,10 +25,10 @@ function handleKeyDown(event) {
             movement.forwardBackward = -1; // Move down
             break;
         case "ArrowRight":
-            angle = -ROT_AMOUNT; // Turn right
+            rotation.yaw += ROT_SPEED; // Turn right
             break;
         case "ArrowLeft":
-            angle = ROT_AMOUNT; // Turn left
+            rotation.yaw += -ROT_SPEED; // Turn left
             break;
         case "d":
             movement.leftRight = 1 // Move right
@@ -58,10 +58,10 @@ function handleKeyUp(event) {
             movement.forwardBackward = 0.0; // Stop Moving
             break;
         case "ArrowLeft":
-            angle = 0.00; // Stop Turning
+            rotation.yaw = 0.00; // Stop Turning
             break;
         case "ArrowRight":
-            angle = 0.00; // Stop Turning
+            rotation.yaw = 0.00; // Stop Turning
             break;
         case "d":
             movement.leftRight = 0 // Stop Moving

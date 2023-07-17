@@ -143,7 +143,7 @@ async function main() {
     difficulty = difficultyNew;
 
     // Create new enemies based on the difficulty increase
-    for (let i = 0; i < ENEMY_COUNT * difficultyIncrease; i++) {
+    for (let i = 0; i < ENEMY_COUNT * difficulty; i++) {
       let isTooClose = true;
       let p;
     
@@ -209,6 +209,7 @@ async function main() {
       // Rotate camera around Y-axis (yaw) based on mouse movement
       const yawRotationMatrix = m4.yRotation(-rotation.yaw);
       const newForwardDirection = m4.transformDirection(yawRotationMatrix, forwardDirection);
+
     
       // Rotate camera around X-axis (pitch) based on mouse movement
       const pitchRotationMatrix = m4.xRotation(-rotation.pitch);
@@ -300,7 +301,7 @@ async function main() {
       // Follow player logic
       //D = A + (B - A) * (moving * step_amount)
       enemy.difficulty = difficulty;
-      enemy.updatePosition(cameraPosition, traps)
+      enemy.updatePosition(cameraPosition, traps, scenario)
       let model_matrix = m4.identity();
       let target = enemy.targetAngle / (Math.PI / 180) + 90
       let rot_speed = 0.1;
