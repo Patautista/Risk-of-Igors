@@ -2,39 +2,75 @@ var lastMouseMoveTimestamp = Date.now();
 var mouseStopTimeout = 100; // Adjust this value as needed, in milliseconds
 
 var canvas = document.getElementById("glcanvas1");
-const movement = {
-forwardBackward: 0,
-leftRight: 0,
-jump: false,
-};
+const movement = {forwardBackward: 0, leftRight: 0, jump: false};
 
-const rotation = {
-yaw: 0,
-pitch: 0,
-};
+const rotation = {yaw: 0, pitch: 0,};
 
-const cameraSpeed = 0.1; // Adjust the camera movement speed here
-const rotationSpeed = 0.005; // Adjust the camera rotation speed here
+const CAMERA_SPEED = 0.1; // Adjust the camera movement speed here
+const ROT_SPEED = 0.005; // Adjust the camera rotation speed here
+const WALKING_SOUND = new Audio("./sound/walking.mp3");
 
+
+function handleKeyDown(event) {
+    switch (event.key) {
+        case "w":
+        case "ArrowUp":
+            movement.forwardBackward = 1; // Move up
+            break;
+        case "s":
+        case "ArrowDown": 
+            movement.forwardBackward = -1; // Move down
+            break;
+        case "ArrowRight":
+            angle = -ROT_AMOUNT; // Turn right
+            break;
+        case "ArrowLeft":
+            angle = ROT_AMOUNT; // Turn left
+            break;
+        case "d":
+            movement.leftRight = 1 // Move right
+            break;
+        case "a":
+            movement.leftRight = -1 // Move left
+            break;
+        default:
+            // Ignore other keys
+            break;
+    }
+}
+
+function handleKeyUp(event) {
+    switch (event.key) {
+        case "w":
+        case "ArrowUp":
+            movement.forwardBackward = 0.0; // Stop Moving
+            break;
+        case "s":
+        case "ArrowDown":
+            movement.forwardBackward = 0.0; // Stop Moving
+            break;
+        case "ArrowLeft":
+            angle = 0.00; // Stop Turning
+            break;
+        case "ArrowRight":
+            angle = 0.00; // Stop Turning
+            break;
+        case "d":
+            movement.leftRight = 0 // Stop Moving
+            break;
+        case "a":
+            movement.leftRight = 0 // Stop Moving
+            break;
+        default:
+            // Ignore other keys
+            break;
+    }
+}
 
 // Listen for keyboard and mouse events
-document.addEventListener("keydown", function (event) {
-    // Handle keydown events to update movement variables
-    if (event.key === "w") movement.forwardBackward = 1;
-    else if (event.key === "s") movement.forwardBackward = -1;
-    else if (event.key === "a") movement.leftRight = -1;
-    else if (event.key === "d") movement.leftRight = 1;
-    else if (event.key === " ") movement.jump = true;
-});
+document.addEventListener("keydown", handleKeyDown);
 
-document.addEventListener("keyup", function (event) {
-    // Handle keyup events to stop movement
-    if (event.key === "w") movement.forwardBackward = 0;
-    else if (event.key === "s") movement.forwardBackward = 0;
-    else if (event.key === "a") movement.leftRight = 0;
-    else if (event.key === "d") movement.leftRight = 0;
-    else if (event.key === " ") movement.jump = false;
-});
+document.addEventListener("keyup", handleKeyUp);
 
 canvas.addEventListener("mousemove", function (event) {
     // Handle mouse movement to update rotation variables

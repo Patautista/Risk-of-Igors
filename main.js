@@ -1,33 +1,3 @@
-function checkCollisionBox(box1, box2) {
-  // Check if any of the X, Y, Z axes are not overlapping
-  if (box1.max[0] < box2.min[0] || box1.min[0] > box2.max[0]) return false;
-  if (box1.max[1] < box2.min[1] || box1.min[1] > box2.max[1]) return false;
-  if (box1.max[2] < box2.min[2] || box1.min[2] > box2.max[2]) return false;
-  
-  // If all axes are overlapping, there is a collision
-  return true;
-}
-
-// Define a flag to check if the game is over
-let isGameOver = false;
-
-// Function to show the game over screen
-function gameOver(score) {
-  isGameOver = true;
-  // Hide the regular overlay content (FPS, Time, Difficulty, Score)
-  document.getElementById("overlay").style.display = "none";
-  // Hide the canvas
-  document.getElementById("glcanvas1").style.display = "none";
-  var scoreFinalElement = document.querySelector("#scoreFinal");
-  var scoreFinalNode = document.createTextNode("");
-  scoreFinalElement.appendChild(scoreFinalNode);
-  scoreFinalNode.nodeValue = score;
-  document.body.style.backgroundColor = "black";
-  // Show the game over overlay
-  document.getElementById("gameOverOverlay").style.display = "block";
-
-}
-
 async function main() {
   var gameOverOverlayElement = document.querySelector("#gameOverOverlay");
   gameOverOverlayElement.style.display = "none";
@@ -109,11 +79,16 @@ async function main() {
   let isJumping = false;
   const jumpSpeed = 0.2; // Adjust this value to control the jump height
 
+  let cameraRadius = 1.0; // Adjust this value based on the size of your camera/player
+  let playerBox = {
+    min: [cameraPosition[0] - cameraRadius, cameraPosition[1], cameraPosition[2] - cameraRadius],
+    max: [cameraPosition[0] + cameraRadius, cameraPosition[1], cameraPosition[2] + cameraRadius]
+  };
   
 
   // -- Where the magic happens
   async function render(time) {
-    if (isGameOver) {
+    if (IS_GAME_OVER) {
       // If the game is over, stop rendering
       return;
     }
@@ -162,7 +137,7 @@ async function main() {
     function updateCamera() {
       
       const forwardDirection = m4.normalize(m4.subtractVectors(cameraTarget, cameraPosition));
-      const forwardSpeed = cameraSpeed * movement.forwardBackward;
+      const forwardSpeed = CAMERA_SPEED * movement.forwardBackward;
     
       // Rotate camera around Y-axis (yaw) based on mouse movement
       const yawRotationMatrix = m4.yRotation(-rotation.yaw);
@@ -184,7 +159,7 @@ async function main() {
     
       // Handle left-right movement
       const leftDirection = m4.normalize(m4.cross(finalForwardDirection, [0, 1, 0]));
-      const strafeAmount = cameraSpeed * movement.leftRight;
+      const strafeAmount = CAMERA_SPEED * movement.leftRight;
       const strafeVector = m4.scaleVector(leftDirection, strafeAmount);
       const strafePosition = m4.addVectors(cameraPosition, strafeVector);
       const strafeTarget = m4.addVectors(cameraTarget, strafeVector);
@@ -200,37 +175,30 @@ async function main() {
         } catch(e){}
       }
 
-      
-
-      // Check for collision with enemies
-      let cameraRadius = 1.0; // Adjust this value based on the size of your camera/player
-      let playerBox = {
+      cameraRadius = 1.0; // Adjust this value based on the size of your camera/player
+      playerBox = {
         min: [cameraPosition[0] - cameraRadius, cameraPosition[1], cameraPosition[2] - cameraRadius],
         max: [cameraPosition[0] + cameraRadius, cameraPosition[1], cameraPosition[2] + cameraRadius]
       };
 
-      // Iterate through each enemy
-      enemies.forEach(enemy => {
-        let enemyBox = {
-          min: [enemy.position[0] - enemy.boundingRadius, enemy.position[1], enemy.position[2] - enemy.boundingRadius],
-          max: [enemy.position[0] + enemy.boundingRadius, enemy.position[1], enemy.position[2] + enemy.boundingRadius]
-        };
-
-        // Check for collision between player and enemy bounding boxes
-        if (checkCollisionBox(playerBox, enemyBox)) {
-          // Handle collision, e.g., player is hit by an enemy
-          gameOver(score);
-        }
-        });
-
     }
-
-    
 
     updateCamera();
 
     // render enemies
     enemies.forEach(enemy => {
+
+      let enemyBox = {
+        min: [enemy.position[0] - enemy.boundingRadius, enemy.position[1], enemy.position[2] - enemy.boundingRadius],
+        max: [enemy.position[0] + enemy.boundingRadius, enemy.position[1], enemy.position[2] + enemy.boundingRadius]
+      };
+
+      // Check for collision between player and enemy bounding boxes
+      if (checkCollisionBox(playerBox, enemyBox)) {
+        // Handle collision, e.g., player is hit by an enemy
+        gameOver(score);
+      }
+
       // enemy killed so increase score
       if(enemy.removed) {
         // Using filter method to create a remove method
@@ -252,7 +220,7 @@ async function main() {
       let target = enemy.targetAngle / (Math.PI / 180) + 90
       let rot_speed = 0.1;
       if(enemy.state == STATE_AGGRESSIVE){
-        rot_speed = rot_speed * 2.5 * difficulty;
+        rot_speed = rot_speed * 2.5 + 0.25 * difficulty;
       }
       model_matrix = m4.translate(model_matrix, ...enemy.position)
       if(enemy.currentAngle == target){

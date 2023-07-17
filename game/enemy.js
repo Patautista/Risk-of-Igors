@@ -104,11 +104,8 @@ class Enemy {
 
     } else {
       //this.difficultyCounter += 1;
-      let speed = IDLE_SPEED * (2 * (this.difficulty - 1));
-      if (
-        m4.distance(Target, this.position) <=
-        BASE_AGGRESSIVE_RANGE + (BASE_AGGRESSIVE_RANGE / 2) * (this.difficulty -1)
-      ) {
+      let speed = IDLE_SPEED;
+      if (m4.distance(Target, this.position) <= BASE_AGGRESSIVE_RANGE /  (this.difficulty * 0.25 + 1)) {
         // Enemy becomes aggressive
         if (this.state == STATE_IDLE) {
           try {
@@ -124,7 +121,7 @@ class Enemy {
       if (this.state == STATE_IDLE) {
         // Choose to ignore player position if it's not aggressive
         Target = this.idleSpot;
-        if (m4.distance(Target, this.position) < BASE_AGGRESSIVE_SPEED) {
+        if (m4.distance(Target, this.position) < IDLE_SPEED) {
           if (this.idleCounter == 0) {
             // Find new spot to walk to
             this.idleSpot = m4.generateRandomPoint(this.position, 5);
@@ -183,11 +180,11 @@ class Enemy {
   }
 }
 
-const ENEMY_COUNT = 8;
+const ENEMY_COUNT = 1;
 const TOUCH_TOLERANCE = 2.5;
 const BASE_AGGRESSIVE_SPEED = 0.015;
 const IDLE_SPEED = 0.01;
-const BASE_AGGRESSIVE_RANGE = 12.5;
+const BASE_AGGRESSIVE_RANGE = 20.5;
 const IDLE_COUNT = 250;
 const AGGRESSIVE_SOUND = new Audio("./sound/aggressive.mp3");
 const ENEMY_DEAD_SOUND = new Audio("./sound/enemy_dead.mp3");

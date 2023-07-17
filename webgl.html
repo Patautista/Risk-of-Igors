@@ -4,62 +4,7 @@
 	<head>
 		<meta charset="utf-8">
 		<title>Risk of Igors!</title>
-		<style>
-            body, html {width: 100%;height: 100%;}
-            body {background-color: #fff;margin: 0;overflow: hidden;font-family: arial;}
-            #blocker {position: absolute;width: 100%;height: 100%;background-color: rgba(0,0,0,.5);}
-            #instructions {
-                        position: absolute;
-                        left: 50%;
-                        top: 50%;
-                        transform: translate(-50%, -50%);
-                        text-align: center;
-                        font-family: monospace;
-                        color: white;
-                        }
-
-                        .title {
-                        font-size: 40px;
-                        display: block;
-                        }
-
-                        p {
-                        font-size: 24px;
-                        margin: 0;
-                        padding: 0;
-                        }
-
-                        .description {
-                        font-size: 20px;
-                        display: block;
-                        margin-top: 10px;
-                        }
-            #overlay {
-                        position: absolute;
-                        left: 10px;
-                        top: 10px;
-                        background-color: rgba(78, 16, 223, 0.7);
-                        color: white;
-                        font-family: monospace;
-                        padding: 1em;
-                        border-radius: 1em;
-                        border: 5px solid rgb(27, 4, 56);
-                    }
-                    #gameOverOverlay {
-                        /* Update positioning and size to center it on the screen */
-                        position: absolute;
-                        left: 50%;
-                        top: 50%;
-                        transform: translate(-50%, -50%);
-                        width: 50%;
-                        max-width: 500px;
-                        color: white;
-                        font-family: monospace;
-                        padding: 1em;
-                        border-radius: 1em;
-                        border: 5px solid rgb(27, 4, 56);
-                    }
-		</style>
+        <link rel="stylesheet" href="webgl.css">
 	</head>
     <script src="lib/math.js"></script>
     <script src="lib/m4.js"></script>
@@ -67,6 +12,7 @@
     <script src="webgl/webUtils.js"></script>
     <script src="game/enemy.js"></script>
     <script src="game/traps.js"></script>
+    <script src="game/gameOver.js"></script>
     <script src="game/scenario.js"></script>
     <script src="main.js"></script>
 	<body onload="main()">
@@ -140,6 +86,8 @@
                 document.addEventListener( 'pointerlockerror', pointerlockerror, false );
                 document.addEventListener( 'mozpointerlockerror', pointerlockerror, false );
                 document.addEventListener( 'webkitpointerlockerror', pointerlockerror, false );
+
+                
 
                 instructions.addEventListener( 'click', function ( event ) {
 
