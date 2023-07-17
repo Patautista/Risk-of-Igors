@@ -9,7 +9,7 @@ const rotation = {yaw: 0, pitch: 0,};
 const CAMERA_SPEED = 0.1; // Adjust the camera movement speed here
 const ROT_SPEED = 0.005; // Adjust the camera rotation speed here
 const WALKING_SOUND = new Audio("./sound/walking.mp3");
-
+const JUMP_AMOUNT = 7.0;
 
 function handleKeyDown(event) {
     switch (event.key) {
@@ -32,6 +32,9 @@ function handleKeyDown(event) {
             break;
         case "a":
             movement.leftRight = -1 // Move left
+            break;
+        case " ":
+            movement.jump = true;
             break;
         default:
             // Ignore other keys

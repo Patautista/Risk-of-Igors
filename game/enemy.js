@@ -105,7 +105,7 @@ class Enemy {
     } else {
       //this.difficultyCounter += 1;
       let speed = IDLE_SPEED;
-      if (m4.distance(Target, this.position) <= BASE_AGGRESSIVE_RANGE /  (this.difficulty * 0.25 + 1)) {
+      if (m4.distance(Target, this.position) <= BASE_AGGRESSIVE_RANGE /  (this.difficulty * 0.1 + 1)) {
         // Enemy becomes aggressive
         if (this.state == STATE_IDLE) {
           try {
@@ -167,7 +167,6 @@ class Enemy {
       }
     });
   }
-
   async deleteObjAfterDelay() {
     if (this.state === STATE_DISABLED) {
       // Wait for 5 seconds using setTimeout

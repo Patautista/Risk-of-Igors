@@ -152,3 +152,5 @@ class Scenario {
   }
     
 }
+
+const SCENARIO_Y_OFFSET = -12

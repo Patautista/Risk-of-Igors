@@ -84,6 +84,8 @@ async function main() {
     min: [cameraPosition[0] - cameraRadius, cameraPosition[1], cameraPosition[2] - cameraRadius],
     max: [cameraPosition[0] + cameraRadius, cameraPosition[1], cameraPosition[2] + cameraRadius]
   };
+
+  let jump = 0;
   
 
   // -- Where the magic happens
@@ -118,6 +120,7 @@ async function main() {
       await newEnemy.createObjFromURL(gl, "./obj/test2.obj");
       enemies.push(newEnemy);
     }
+    // Create new traps
     for(i=0; i<=TRAP_COUNT-1 * difficultyIncrease; i++){
       p = m4.generateRandomPoint([0,0,0], 20)
       p[1] = 0;
@@ -146,6 +149,17 @@ async function main() {
       // Rotate camera around X-axis (pitch) based on mouse movement
       const pitchRotationMatrix = m4.xRotation(-rotation.pitch);
       const finalForwardDirection = m4.transformDirection(pitchRotationMatrix, newForwardDirection);
+
+      // Jump
+      if(movement.jump){
+        if(jump < JUMP_AMOUNT) jump += 0.1;
+        else movement.jump = false
+      } 
+      else{
+        if(jump != 0) jump -= 0.1;
+      }
+      jump = Math.round( jump * 10 )/10
+      cameraPosition[1] = jump;
       
       // Update camera position and target
       const newPosition = m4.addVectors(cameraPosition, m4.scaleVector(finalForwardDirection, forwardSpeed));
@@ -256,7 +270,7 @@ async function main() {
     )
 
     // render scenario
-    let model_matrix = m4.translate(m4.identity(), 0,-12,0);
+    let model_matrix = m4.translate(m4.identity(), 0, SCENARIO_Y_OFFSET, 0);
     scenario.render(gl, meshProgramInfo, model_matrix);
       
     //If the mouse hasn't moved for a certain duration, stop camera rotation
