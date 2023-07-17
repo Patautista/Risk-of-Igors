@@ -111,18 +111,12 @@ async function main() {
   var then = 0;
   var score = 1;
   var difficulty = 0;
-  // Define jump related variables
-  let isJumping = false;
-  const jumpSpeed = 0.2; // Adjust this value to control the jump height
 
   let cameraRadius = 1.0; // Adjust this value based on the size of your camera/player
   let playerBox = {
     min: [cameraPosition[0] - cameraRadius, cameraPosition[1], cameraPosition[2] - cameraRadius],
     max: [cameraPosition[0] + cameraRadius, cameraPosition[1], cameraPosition[2] + cameraRadius]
-  };
-
-  let jump = 0;
-  
+  };  
 
   // -- Where the magic happens
   async function render(time) {
@@ -259,9 +253,11 @@ async function main() {
         cameraTarget = [strafeTarget[0], cameraPosition[1], strafeTarget[2]]; // Keep y-position fixed
       }
       if((movement.forwardBackward != 0) || (movement.leftRight != 0)){
-        try{
-          WALKING_SOUND.play();
-        } catch(e){}
+        if(jump == 0){
+          try{
+            WALKING_SOUND.play();
+          } catch(e){}
+        }
       }
 
       cameraRadius = 1.0; // Adjust this value based on the size of your camera/player

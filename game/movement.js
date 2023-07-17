@@ -5,6 +5,7 @@ var canvas = document.getElementById("glcanvas1");
 const movement = {forwardBackward: 0, leftRight: 0, jump: false};
 
 const rotation = {yaw: 0, pitch: 0,};
+let jump = 0;
 
 const CAMERA_SPEED = 0.1; // Adjust the camera movement speed here
 const ROT_SPEED = 0.005; // Adjust the camera rotation speed here
@@ -36,7 +37,9 @@ function handleKeyDown(event) {
             movement.leftRight = -1 // Move left
             break;
         case " ":
-            movement.jump = true;
+            if(jump == 0){
+                movement.jump = true;
+            }
             break;
         default:
             // Ignore other keys
