@@ -1,3 +1,4 @@
+const MIN_SPAWN_RADIUS = 20; // Adjust this value to set the minimum distance from the player
 async function main() {
   var gameOverOverlayElement = document.querySelector("#gameOverOverlay");
   gameOverOverlayElement.style.display = "none";
@@ -51,19 +52,54 @@ async function main() {
 
   let enemies = [];
 
-  for(i=0; i<=ENEMY_COUNT-1; i++){
-    p = m4.generateRandomPoint([0,0,0], 20)
-    p[1] = 0
+  for (i = 0; i < ENEMY_COUNT-1; i++) {
+    let isTooClose = true;
+    let p;
+  
+    while (isTooClose) {
+      p = m4.generateRandomPoint([0, 0, 0], 20);
+      p[1] = 0;
+  
+      // Calculate the distance between the enemy spawn point and the player's camera position
+      const distanceToPlayer = Math.sqrt(
+        (p[0] - cameraPosition[0]) ** 2 +
+        (p[1] - cameraPosition[1]) ** 2 +
+        (p[2] - cameraPosition[2]) ** 2
+      );
+  
+      // Check if the enemy is far enough from the player's camera position
+      if (distanceToPlayer >= MIN_SPAWN_RADIUS) {
+        isTooClose = false;
+      }
+    }
+  
     let newEnemy = new Enemy(p, STATE_IDLE, 1);
-    await newEnemy.createObjFromURL(gl, "./obj/test2.obj")
+    await newEnemy.createObjFromURL(gl, "./obj/test2.obj");
     enemies.push(newEnemy);
   }
 
   let traps = [];
 
   for(i=0; i<=TRAP_COUNT-1; i++){
-    p = m4.generateRandomPoint([0,0,0], 20)
-    p[1] = 0;
+    let isTooClose = true;
+    let p;
+  
+    while (isTooClose) {
+      p = m4.generateRandomPoint([0, 0, 0], 20);
+      p[1] = 0;
+  
+      // Calculate the distance between the enemy spawn point and the player's camera position
+      const distanceToPlayer = Math.sqrt(
+        (p[0] - cameraPosition[0]) ** 2 +
+        (p[1] - cameraPosition[1]) ** 2 +
+        (p[2] - cameraPosition[2]) ** 2
+      );
+  
+      // Check if the enemy is far enough from the player's camera position
+      if (distanceToPlayer >= MIN_SPAWN_RADIUS) {
+        isTooClose = false;
+      }
+    }
     let newTrap = new Trap(p);
     await newTrap.createObjFromURL(gl, "./obj/bear_trap.obj")
     traps.push(newTrap);
@@ -114,16 +150,50 @@ async function main() {
 
     // Create new enemies based on the difficulty increase
     for (let i = 0; i < ENEMY_COUNT * difficultyIncrease; i++) {
-      p = m4.generateRandomPoint([0, 0, 0], 20);
-      p[1] = 0;
+      let isTooClose = true;
+      let p;
+    
+      while (isTooClose) {
+        p = m4.generateRandomPoint([0, 0, 0], 20);
+        p[1] = 0;
+    
+        // Calculate the distance between the enemy spawn point and the player's camera position
+        const distanceToPlayer = Math.sqrt(
+          (p[0] - cameraPosition[0]) ** 2 +
+          (p[1] - cameraPosition[1]) ** 2 +
+          (p[2] - cameraPosition[2]) ** 2
+        );
+    
+        // Check if the enemy is far enough from the player's camera position
+        if (distanceToPlayer >= MIN_SPAWN_RADIUS - 0.25*difficulty) {
+          isTooClose = false;
+        }
+      }
       let newEnemy = new Enemy(p, STATE_IDLE, 1);
       await newEnemy.createObjFromURL(gl, "./obj/test2.obj");
       enemies.push(newEnemy);
     }
     // Create new traps
     for(i=0; i<=TRAP_COUNT-1 * difficultyIncrease; i++){
-      p = m4.generateRandomPoint([0,0,0], 20)
-      p[1] = 0;
+      let isTooClose = true;
+      let p;
+    
+      while (isTooClose) {
+        p = m4.generateRandomPoint([0, 0, 0], 20);
+        p[1] = 0;
+    
+        // Calculate the distance between the enemy spawn point and the player's camera position
+        const distanceToPlayer = Math.sqrt(
+          (p[0] - cameraPosition[0]) ** 2 +
+          (p[1] - cameraPosition[1]) ** 2 +
+          (p[2] - cameraPosition[2]) ** 2
+        );
+    
+        // Check if the enemy is far enough from the player's camera position
+        if (distanceToPlayer >= MIN_SPAWN_RADIUS) {
+          isTooClose = false;
+        }
+      }
       let newTrap = new Trap(p);
       await newTrap.createObjFromURL(gl, "./obj/bear_trap.obj")
       traps.push(newTrap);
@@ -261,6 +331,16 @@ async function main() {
     // render traps
     traps.forEach(
       trap => {
+        let trapBox = {
+          min: [trap.position[0] - trap.boundingRadius, trap.position[1], trap.position[2] - trap.boundingRadius],
+          max: [trap.position[0] + trap.boundingRadius, trap.position[1], trap.position[2] + trap.boundingRadius]
+        };
+  
+        // Check for collision between player and enemy bounding boxes
+        if (checkCollisionBox(playerBox, trapBox)) {
+          // Handle collision, e.g., player is hit by an enemy
+          gameOver(score);
+        }
         // translate trap's y offset
         let model_matrix = m4.translate(m4.identity(), trap.position[0],0.3,trap.position[2])
         // translate it to its position

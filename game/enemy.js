@@ -179,7 +179,7 @@ class Enemy {
   }
 }
 
-const ENEMY_COUNT = 1;
+const ENEMY_COUNT = 5;
 const TOUCH_TOLERANCE = 2.5;
 const BASE_AGGRESSIVE_SPEED = 0.015;
 const IDLE_SPEED = 0.01;
