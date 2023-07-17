@@ -1,5 +1,6 @@
-class Scenario {
-    constructor() {
+class Trap {
+    constructor(position) {
+      this.position = position;
       this.obj;
       this.parts;
     }
@@ -44,18 +45,6 @@ class Scenario {
         };
       
         this.parts = this.obj.geometries.map(({material, data}) => {
-          // Because data is just named arrays like this
-          //
-          // {
-          //   position: [...],
-          //   texcoord: [...],
-          //   normal: [...],
-          // }
-          //
-          // and because those names match the attributes in our vertex
-          // shader we can pass it directly into `createBufferInfoFromArrays`
-          // from the article "less code more fun".
-      
           if (data.color) {
             if (data.position.length === data.color.length) {
               // it's 3. The our helper library assumes 4 so we need
@@ -80,15 +69,18 @@ class Scenario {
         });
     }
     render(gl, meshProgramInfo, u_world){
-        for (const {bufferInfo, material} of this.parts) {
-          // calls gl.bindBuffer, gl.enableVertexAttribArray, gl.vertexAttribPointer
-          webglUtils.setBuffersAndAttributes(gl, meshProgramInfo, bufferInfo);
-          // calls gl.uniform
-          webglUtils.setUniforms(meshProgramInfo, {
-            u_world,
-          }, material);
-          // calls gl.drawArrays or gl.drawElements
-          webglUtils.drawBufferInfo(gl, bufferInfo);
-        }
+      for (const {bufferInfo, material} of this.parts) {
+        // calls gl.bindBuffer, gl.enableVertexAttribArray, gl.vertexAttribPointer
+        webglUtils.setBuffersAndAttributes(gl, meshProgramInfo, bufferInfo);
+        // calls gl.uniform
+        webglUtils.setUniforms(meshProgramInfo, {
+          u_world,
+        }, material);
+        // calls gl.drawArrays or gl.drawElements
+        webglUtils.drawBufferInfo(gl, bufferInfo);
       }
+    }
 }
+
+const TRAP_PROXIMITY_RANGE = 1.2
+const TRAP_COUNT = 5

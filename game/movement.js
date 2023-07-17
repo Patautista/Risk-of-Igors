@@ -64,3 +64,5 @@ function handleKeyUp(event) {
 
 document.addEventListener("keydown", handleKeyDown);
 document.addEventListener("keyup", handleKeyUp);
+
+const WALKING_SOUND = new Audio('./sound/walking.mp3');
