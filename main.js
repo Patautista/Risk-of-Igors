@@ -275,8 +275,8 @@ async function main() {
     enemies.forEach(enemy => {
 
       let enemyBox = {
-        min: [enemy.position[0] - enemy.boundingRadius, enemy.position[1], enemy.position[2] - enemy.boundingRadius],
-        max: [enemy.position[0] + enemy.boundingRadius, enemy.position[1], enemy.position[2] + enemy.boundingRadius]
+        min: [enemy.position[0] - enemy.boundingRadius, 0, enemy.position[2] - enemy.boundingRadius],
+        max: [enemy.position[0] + enemy.boundingRadius, 0, enemy.position[2] + enemy.boundingRadius]
       };
 
       // Check for collision between player and enemy bounding boxes
