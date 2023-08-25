@@ -4,7 +4,7 @@ Jogo feito em javascript para WebGl, usando a biblioteca m4.js para transformaç
 
 Desenvolvido por Caleb Sousa e Igor Melo para a disciplina de Computação Gráfica da Universidade Federal do Ceará.
 
-English:
+**English:**
 
 Game made in javascript for WebGl, using the m4.js library for matrix transformations and vector operations.
 
